@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  express-api:
+    container_name: express
+    build:
+      context: ./express
+    ports:
+      - "${PORT:-4000}:4000"
+    env_file: ./.env
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - /opt/docker/caofa:/opt/docker/caofa
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  dotnet-api:
+    container_name: dotnet
+    build:
+      context: ./dotnet
+    ports:
+      - "${DOTNET_PORT:-4001}:4001"
+    env_file: ./.env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=https://+:4001
+      - CERT_PATH=/app/certs/aspnetcert.pfx
+      - CERT_PASSWORD=17052006
+    volumes:
+      - ./dotnet/logs:/app/logs
+      - ./dotnet/certs:/app/certs
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

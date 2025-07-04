@@ -1,0 +1,36 @@
+# .NET
+dotnet/bin/
+dotnet/obj/
+dotnet/logs/
+dotnet/certs/
+dotnet/*.user
+dotnet/*.suo
+dotnet/*.cache
+dotnet/*.log
+
+# Node.js
+express/node_modules/
+express/logs/
+express/uploads/
+express/*.log
+express/npm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore

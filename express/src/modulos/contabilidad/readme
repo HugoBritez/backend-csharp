@@ -1,0 +1,24 @@
+const params: ParametrosAsiento = {
+  automatico: true,
+  tipoVenta: 0,
+  moneda: 1,
+  sucursal: 1,
+  factura: "F001-001",
+  operador: 1,
+  fecha: "2024-03-20",
+  totalPagar: 1000,
+  numeroAsiento: 1,
+  cotizacion: 1,
+  totalExentas: 100,
+  total5: 500,
+  total10: 400,
+  imprimirLegal: true,
+  cajaDefinicion: 1,
+  referencia: 123 // ID de la venta u otro documento relacionado
+};
+
+const idAsiento = await guardarAsientoAutomatico(
+  params,
+  configAsientoVenta,
+  configAsientoVentaComun
+);

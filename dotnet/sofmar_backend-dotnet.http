@@ -1,0 +1,6 @@
+@sofmar_backend_dotnet_HostAddress = http://localhost:5069
+
+GET {{sofmar_backend_dotnet_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
