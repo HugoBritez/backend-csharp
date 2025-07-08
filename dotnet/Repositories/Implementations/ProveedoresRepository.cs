@@ -1,16 +1,19 @@
-using Api.Data;
+
 using Api.Models.Entities;
 using Api.Models.ViewModels;
 using Api.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Dapper;
+using Api.Data;
+using Api.Repositories.Base;
 
 
 namespace Api.Repositories.Implementations
 {
-    public class ProveedoresRepository : IProveedoresRepository
+    public class ProveedoresRepository : DapperRepositoryBase, IProveedoresRepository
     {
         private readonly ApplicationDbContext _context;
-        public ProveedoresRepository(ApplicationDbContext context)
+        public ProveedoresRepository(IConfiguration configuration, ApplicationDbContext context) : base(configuration)
         {
             _context = context;
         }
@@ -80,6 +83,59 @@ namespace Api.Repositories.Implementations
             _context.Proveedores.Update(data);
             await _context.SaveChangesAsync();
             return data;
+        }
+
+        public async Task<IEnumerable<ReporteProveedores>> GetReporteProveedores(string? fechaDesde, string? fechaHasta, uint? proveedor)
+        {
+            try{
+                using var connection = await GetConnectionAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("FechaDesde", fechaDesde);
+                parameters.Add("FechaHasta", fechaHasta);
+                parameters.Add("Proveedor", proveedor);
+
+                var query = @"
+                    SELECT
+                        ar.ar_codigo as CodigoProducto,
+                        ar.ar_descripcion as DescripcionProducto,
+                        COALESCE(SUM(al.al_cantidad), 0) as TotalStock,
+                        COALESCE(SUM(dv.deve_cantidad), 0) as TotalItems,
+                        COALESCE(SUM(dv.deve_exentas + dv.deve_cinco + dv.deve_diez),0) as TotalImporte,
+                        COALESCE(SUM(
+                            CASE
+                                WHEN v.ve_saldo = 0 THEN (dv.deve_exentas + dv.deve_cinco + dv.deve_diez)
+                                ELSE 0
+                            END
+                        ), 0) as MontoCobrado,
+                        (
+                            SELECT SUM(dc.dc_cantidad)
+                            FROM detalle_compras dc
+                            INNER JOIN compras co ON dc.dc_compra = co.co_codigo
+                            WHERE co.co_proveedor = @Proveedor
+                            AND co_fecha BETWEEN @FechaDesde AND @FechaHasta
+                            AND dc.dc_articulo = ar.ar_codigo
+                            GROUP BY dc.dc_articulo
+                         ) as TotalCompras
+                    FROM articulos ar
+                    INNER JOIN articulos_lotes al ON ar.ar_codigo = al.al_articulo
+                    INNER JOIN articulos_proveedores ap ON ar.ar_codigo = ap.arprove_articulo
+                    INNER JOIN proveedores p ON ap.arprove_prove = p.pro_codigo
+                    LEFT JOIN detalle_ventas dv ON ar.ar_codigo = dv.deve_articulo
+                    LEFT JOIN ventas v ON dv.deve_venta = v.ve_codigo
+                    WHERE v.ve_estado = 1
+                    AND p.pro_codigo = @Proveedor
+                    AND v.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
+                    GROUP BY ar.ar_codigo, ar.ar_descripcion, ap.arprove_prove, p.pro_razon
+                    ORDER BY ar.ar_codigo, ap.arprove_prove;
+                ";
+
+                var result = await connection.QueryAsync<ReporteProveedores>(query, parameters);
+                return result;
+            } catch (Exception ex)
+            {
+                Console.WriteLine($"Error de conexión: {ex.Message}");
+                throw;
+            }
         }
     }
 }

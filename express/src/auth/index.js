@@ -51,6 +51,18 @@ function obtenerToken(autorizacion){
 
 // Función para generar token (mantener compatibilidad si es necesario)
 function asignarToken(data){
+    console.log(`[AUTH] asignarToken recibió:`, data);
+    
+    // Validar que data no sea undefined
+    if (!data) {
+        throw new Error('Datos de usuario requeridos para generar token');
+    }
+    
+    // Validar que tenga las propiedades necesarias
+    if (!data.op_codigo) {
+        throw new Error('op_codigo es requerido para generar token');
+    }
+    
     const payload = {
         op_codigo: data.op_codigo,
         op_nombre: data.op_nombre,
@@ -58,6 +70,8 @@ function asignarToken(data){
         or_rol: data.or_rol,
         // Agregar otros campos que necesites
     };
+    
+    console.log(`[AUTH] Payload del token:`, payload);
     
     return jwt.sign(payload, secret, {
         issuer: config.jwt.issuer || 'SofmarAPI',

@@ -67,6 +67,8 @@ module.exports = function (dbInyectada) {
     page = 1,
     itemsPorPagina = 50
   ) {
+
+    console.log(fecha_desde, fecha_hasta, sucursal, cliente, vendedor, articulo, moneda, factura, venta, estadoVenta, remisiones, listarFacturasSinCDC, page, itemsPorPagina);
     let where = "1 = 1 ";
     let limitOffset = "";
 
@@ -81,8 +83,8 @@ module.exports = function (dbInyectada) {
       if (fecha_desde) where += ` AND ve.ve_fecha >= '${fecha_desde}'`;
       if (fecha_hasta) where += ` AND ve.ve_fecha <= '${fecha_hasta}'`;
       if (sucursal) where += ` AND ve.ve_sucursal = '${sucursal}'`;
-      if (cliente) where += ` AND ve.ve_cliente = '${cliente}'`;
-      if (vendedor) where += ` AND ve.ve_operador = '${vendedor}'`;
+      if (cliente) where += ` AND ve.ve_cliente = ${cliente}`;
+      if (vendedor) where += ` AND ve.ve_operador = ${vendedor}`;
       if (articulo)
         where += ` AND ve.ve_codigo IN (SELECT z.deve_venta FROM detalle_ventas z WHERE deve_articulo = ${articulo})`;
       if (moneda) where += ` AND ve.ve_moneda = ${moneda}`;
@@ -1749,6 +1751,7 @@ ${limitOffset} `;
         );
       }
 
+      // eslint-disable-next-line no-undef
       ventaQuery = await db.sql(
         `
         INSERT INTO ventas (

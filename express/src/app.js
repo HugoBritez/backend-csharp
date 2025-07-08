@@ -118,6 +118,15 @@ app.use(
         "https://webapp.caofa.com.py",
         "https://medical.sofmar.com.py"
       ];
+      
+      // En desarrollo, permitir también conexiones HTTP locales
+      if (env === 'development') {
+        allowedOrigins.push("http://localhost:3000");
+        allowedOrigins.push("http://127.0.0.1:3000");
+        allowedOrigins.push("http://localhost:8080");
+        allowedOrigins.push("http://127.0.0.1:8080");
+      }
+      
       const origin = res.req.headers.origin;
       if (allowedOrigins.includes(origin)) {
         res.set("Access-Control-Allow-Origin", origin);
@@ -127,6 +136,8 @@ app.use(
     },
   })
 );
+
+const env = process.env.NODE_ENV || 'development';
 
 let corsOptions = {
   origin: [
@@ -140,10 +151,17 @@ let corsOptions = {
     "https://webapp.gaesa.com.py",
     "https://webapp.caofa.com.py",
     "https://medical.sofmar.com.py"
-
   ],
   optionsSuccessStatus: 200,
 };
+
+// En desarrollo, permitir también conexiones HTTP locales
+if (env === 'development') {
+  corsOptions.origin.push("http://localhost:3000");
+  corsOptions.origin.push("http://127.0.0.1:3000");
+  corsOptions.origin.push("http://localhost:8080");
+  corsOptions.origin.push("http://127.0.0.1:8080");
+}
 app.use(cors(corsOptions));
 
 //Con esta función hacemos el control del filtro, sino lo cumple, entonces devuelve el error 422 con un mensaje.

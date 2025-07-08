@@ -8,5 +8,9 @@ namespace Api.Repositories.Interfaces
         Task<IEnumerable<PedidoDetalleViewModel>> GetDetallesPedido(Pedido pedido);
 
         Task<IEnumerable<DetallePedido>> GetByPedido(uint id);
+
+        Task<DetallePedido?> GetById(uint id);
+
+        Task<DetallePedido> Update(DetallePedido detalle);
     }
 }

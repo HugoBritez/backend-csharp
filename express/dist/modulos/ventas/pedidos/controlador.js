@@ -1,3 +1,4 @@
+/* eslint-disable require-yield */
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -738,6 +739,7 @@ module.exports = function (dbInyectada) {
             return db.sql(query);
         });
     }
+    // eslint-disable-next-line require-yield
     const getNumeroCajas = (pedidoId) => __awaiter(this, void 0, void 0, function* () {
         const query = `
       SELECT
@@ -947,6 +949,7 @@ module.exports = function (dbInyectada) {
         dp.dp_cantidad as cantidad_pedido_num,
         dp.dp_codigolote as id_lote,
         dep.dep_descripcion as deposito,
+        p.p_imprimir as impreso,
         df.obs as observacion,
         IF(
           EXISTS(

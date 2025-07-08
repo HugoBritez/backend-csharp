@@ -25,7 +25,7 @@ namespace Api.Models.Entities
         [Column("dp_diez")]
         public decimal Diez { get; set; }
         [Column("dp_lote")]
-        public string Lote { get; set; } = string.Empty;
+        public string? Lote { get; set; }
         [Column("dp_vence")]
         public DateOnly Vencimiento { get; set; }
         [Column("dp_vendedor")]
@@ -43,9 +43,9 @@ namespace Api.Models.Entities
         [Column("dp_bonif")]
         public uint Bonificacion { get; set; }
         [Column("dp_descripcion_art")]
-        public string DescripcionArticulo { get; set; } = string.Empty;
+        public string? DescripcionArticulo { get; set; }
         [Column("dp_obs")]
-        public string Observacion { get; set; } = string.Empty;
+        public string? Observacion { get; set; }
         [Column("cantidad_cargada")]
         public int CantidadCargada { get; set; }
     } 

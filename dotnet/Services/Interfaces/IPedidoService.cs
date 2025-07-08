@@ -21,5 +21,7 @@ namespace Api.Services.Interfaces
         );
 
         Task<ResponseViewModel<Pedido>> AutorizarPedido(uint idPedido, string usuario, string password);
+
+        Task<DetallePedido?> CambiarLoteDetallePedido(uint idDetallePedido, string lote, uint idLote);
     }
 }

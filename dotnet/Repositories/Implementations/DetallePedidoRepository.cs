@@ -185,6 +185,39 @@ namespace Api.Repositories.Implementations
       return await connection.QueryAsync<PedidoDetalleViewModel>(query, parameters);
     }
 
+    public async Task<DetallePedido?> GetById(uint id)
+    {
+      return await _context.DetallePedido.Where(dp => dp.Codigo == id).FirstOrDefaultAsync();
+    }
 
+    public async Task<DetallePedido> Update(DetallePedido detalle)
+    {
+      Console.WriteLine($"Iniciando Update en repositorio - ID: {detalle.Codigo}, Lote: {detalle.Lote ?? "NULL"}, CodigoLote: {detalle.CodigoLote}");
+      
+      // Obtener la entidad existente del contexto
+      var detalleExistente = await _context.DetallePedido.FindAsync(detalle.Codigo);
+      if (detalleExistente == null)
+      {
+          Console.WriteLine($"Error: No se encontró el detalle pedido en el contexto con ID: {detalle.Codigo}");
+          throw new InvalidOperationException($"Detalle pedido no encontrado: {detalle.Codigo}");
+      }
+      
+      Console.WriteLine($"Detalle existente encontrado - Lote: {detalleExistente.Lote ?? "NULL"}, CodigoLote: {detalleExistente.CodigoLote}");
+      
+      // Actualizar solo los campos específicos
+      detalleExistente.Lote = detalle.Lote;
+      detalleExistente.CodigoLote = detalle.CodigoLote;
+      
+      Console.WriteLine($"Valores actualizados en contexto - Lote: {detalleExistente.Lote}, CodigoLote: {detalleExistente.CodigoLote}");
+      
+      // Marcar como modificado
+      _context.Entry(detalleExistente).State = EntityState.Modified;
+      
+      // Guardar cambios
+      var rowsAffected = await _context.SaveChangesAsync();
+      Console.WriteLine($"SaveChanges completado - Filas afectadas: {rowsAffected}");
+      
+      return detalleExistente;
+    }
   }
 }

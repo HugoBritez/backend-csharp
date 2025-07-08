@@ -30,5 +30,12 @@ namespace Api.Auth.Controllers
 
             return Ok(response);
         }
+
+        [HttpPost("proveedor")]
+        public async Task<IActionResult> LoginProveedor([FromBody] LoginProveedorRequest request)
+        {
+            var response = await _authService.LoginProveedor(request.Email, request.Ruc);
+            return Ok(response);
+        }
     }
 }

@@ -12,7 +12,7 @@ router.post("/agregar-venta-nuevo", seguridad(), agregarVentaNuevo);
 router.post("/agregar", seguridad(), agregar);
 router.get("/detalles", seguridad(), detalles);
 router.get("/cliente/", seguridad(), cliente);
-router.post("/consultas", seguridad(), consultas);
+router.get("/consultas", seguridad(), consultas);
 router.post("/modificar", seguridad(), modificar);
 router.post("/resumen", resumen);
 router.post("/resumen-totales", resumenTotales);
@@ -230,7 +230,7 @@ async function uno(req, res, next) {
 
 async function consultas(req, res, next) {
   try {
-    const bod = req.body;
+    const bod = req.query;
     const page = bod.page || 1;  // Default to page 1
     const itemsPorPagina = bod.itemsPorPagina || 50
     const items = await controlador.getCabeceras(

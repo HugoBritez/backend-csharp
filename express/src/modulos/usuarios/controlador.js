@@ -1,5 +1,3 @@
-
-
 const TABLA = 'operadores';
 
 /*const auth = require('../../auth/index');*/
@@ -13,8 +11,20 @@ module.exports = function(dbInyectada) {
     }
 
     async function login(user, pass){
+        console.log(`[CONTROLADOR] Iniciando login para usuario: ${user}`);
         const data = await db.login(TABLA, user, pass);
-        return  data;
+        console.log(`[CONTROLADOR] Login completado para usuario: ${user}`, { 
+            tieneData: !!data, 
+            op_codigo: data?.op_codigo, 
+            op_usuario: data?.op_usuario 
+        });
+        
+        // Validar que data no sea undefined
+        if (!data) {
+            throw new Error('No se pudo obtener datos del usuario');
+        }
+        
+        return data;
     }
 
     async function vendedores(busqueda, id_vendedor){

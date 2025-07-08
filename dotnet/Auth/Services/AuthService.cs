@@ -20,6 +20,51 @@ namespace Api.Auth.Services
             _auditoriaService = auditoriaService;
         }
 
+
+        public async Task<LoginProveedorResponse> LoginProveedor(string Email, string Ruc)
+        {
+            try{ 
+                var parameters = new DynamicParameters();
+                parameters.Add("Email", Email);
+                parameters.Add("Ruc", Ruc);
+
+                using var connection = await GetConnectionAsync();
+                var query = @"
+                  SELECT
+                    pro.pro_codigo,
+                    pro.pro_razon
+                  FROM proveedores pro
+                  WHERE pro.pro_mail = @Email AND pro.pro_ruc = @Ruc
+                ";
+
+                var result = await connection.QueryFirstOrDefaultAsync<dynamic>(query, parameters);
+
+                if (result == null)
+                    throw new Exception("Email o RUC incorrectos");
+
+                var response = new LoginProveedorResponse
+                {
+                    Token = _jwtService.GenerateTokenProveedor(new LoginProveedor
+                    {
+                        ProCodigo = Convert.ToUInt32(result.pro_codigo),
+                        ProRazon = result.pro_razon
+                    }),
+                    Proveedor = new LoginProveedor
+                    {
+                        ProCodigo = Convert.ToUInt32(result.pro_codigo),
+                        ProRazon = result.pro_razon
+                    }
+                };
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error de conexión: {ex.Message}");
+                throw;
+            }
+        }
+
         public async Task<LoginResponse> Login(string usuario, string password)
         {
             try

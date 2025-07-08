@@ -119,8 +119,10 @@ module.exports = function (dbInyectada) {
       ar.ar_descripcion as articulo_descripcion,
       FLOOR(dc.dc_cantidad) as cantidad,
       dc.dc_lote as lote,
-      dc.dc_vence as vencimiento
+      dc.dc_vence as vencimiento,
+      d.loteid as id_lote
     FROM detalle_compras dc
+    INNER JOIN detalle_compras_vencimineto d ON dc.dc_id = d.dv_detalle_compra
     INNER JOIN articulos ar ON dc.dc_articulo = ar.ar_codigo
     WHERE dc.dc_compra = ${id_compra}
     AND dc.dc_cantidad_verificada = 0

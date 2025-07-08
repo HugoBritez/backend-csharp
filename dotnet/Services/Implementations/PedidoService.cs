@@ -200,5 +200,50 @@ namespace Api.Services.Implementations
                 Message = "Pedido autorizado satisfactoriamente"
             };
         }
+
+        public async Task<DetallePedido?> CambiarLoteDetallePedido(uint idDetallePedido, string lote, uint idLote)
+        {
+            Console.WriteLine($"Iniciando cambio de lote - ID Detalle: {idDetallePedido}, Lote: {lote}, ID Lote: {idLote}");
+            
+            var detallePedido = await _detallePedidoRepository.GetById(idDetallePedido);
+            if (detallePedido == null)
+            {
+                Console.WriteLine($"Error: Detalle pedido no encontrado con ID: {idDetallePedido}");
+                return null;
+            }
+
+            var loteExistente = await _articuloLoteRepository.GetById(idLote);
+
+            if (loteExistente == null)
+            {
+                Console.WriteLine($"Error: Lote no encontrado con ID: {idLote}");
+                return null;
+            }
+            
+            Console.WriteLine($"Detalle pedido encontrado - Lote actual: {detallePedido.Lote ?? "NULL"}, CodigoLote actual: {detallePedido.CodigoLote}");
+            
+            // Guardar valores anteriores para logging
+            var loteAnterior = detallePedido.Lote ?? "NULL";
+            var codigoLoteAnterior = detallePedido.CodigoLote;
+            
+            // Actualizar valores
+            detallePedido.Lote = lote;
+            detallePedido.CodigoLote = idLote;
+            detallePedido.Vencimiento = DateOnly.FromDateTime(loteExistente.AlVencimiento);
+            
+            Console.WriteLine($"Valores actualizados - Lote: {loteAnterior} -> {detallePedido.Lote}, CodigoLote: {codigoLoteAnterior} -> {detallePedido.CodigoLote}");
+            
+            try
+            {
+                var resultado = await _detallePedidoRepository.Update(detallePedido);
+                Console.WriteLine($"Update completado exitosamente - Lote final: {resultado.Lote}, CodigoLote final: {resultado.CodigoLote}");
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error durante el update: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

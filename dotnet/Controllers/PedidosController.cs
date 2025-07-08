@@ -101,6 +101,24 @@ namespace Api.Controllers
             return Ok(response);
         }
 
-        
+        public class CambiarLoteDetallePedidoDTO
+        {
+            public uint idDetallePedido { get; set; }
+            public string lote { get; set; } = string.Empty;
+            public uint idLote { get; set; }
+        }
+
+        [HttpPost("cambiar-lote")]
+        public async Task<ActionResult<DetallePedido>> CambiarLoteDetallePedido(
+            [FromBody] CambiarLoteDetallePedidoDTO request
+        )
+        {
+            var response = await _pedidosService.CambiarLoteDetallePedido(
+                request.idDetallePedido, 
+                request.lote, 
+                request.idLote
+            );
+            return Ok(response);
+        }
     }
 }

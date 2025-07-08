@@ -25,5 +25,16 @@ namespace Api.Controllers
             var proveedores = await _proveedoresRepository.GetProveedores(busqueda);
             return Ok(proveedores);
         }
+
+        [HttpGet("reporte")]
+        public async Task<ActionResult<IEnumerable<ReporteProveedores>>> GetReporteProveedores(
+            [FromQuery] string? fechaDesde,
+            [FromQuery] string? fechaHasta,
+            [FromQuery] uint? proveedor
+        )
+        {
+            var reporte = await _proveedoresRepository.GetReporteProveedores(fechaDesde, fechaHasta, proveedor);
+            return Ok(reporte);
+        }
     }
 }

@@ -10,6 +10,7 @@ namespace Api.Auth.Services
     public interface IJwtService
     {
         string GenerateToken(UsuarioResponse user);
+        string GenerateTokenProveedor(LoginProveedor proveedor);
     }
 
     public class JwtService : IJwtService
@@ -39,6 +40,32 @@ namespace Api.Auth.Services
                 new Claim("op_codigo", user.OpCodigo.ToString()),
                 new Claim("op_nombre", user.OpNombre),
                 new Claim("or_rol", user.OrRol.ToString())
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: jwtIssuer,
+                audience: jwtAudience,
+                claims: claims,
+                expires: DateTime.Now.AddHours(8),
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public string GenerateTokenProveedor (LoginProveedor proveedor)
+        {
+            var jwtKey = Env.GetString("JWT_KEY");
+            var jwtIssuer = Env.GetString("JWT_ISSUER");
+            var jwtAudience = Env.GetString("JWT_AUDIENCE");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new List<Claim>
+            {
+                new Claim("pro_codigo", proveedor.ProCodigo.ToString()),
+                new Claim("pro_razon", proveedor.ProRazon)
             };
 
             var token = new JwtSecurityToken(

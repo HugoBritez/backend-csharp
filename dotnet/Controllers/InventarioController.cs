@@ -45,8 +45,8 @@ namespace Api.Controllers
             return Ok(inventarioCerrado);
         }
 
-        [HttpGet("autorizar")]
-        public async Task<ActionResult<InventarioAuxiliar>> AutorizarInventario([FromQuery] uint id)
+        [HttpPost("autorizar")]
+        public async Task<ActionResult<InventarioAuxiliar>> AutorizarInventario([FromBody] uint id)
         {
             var inventarioAutorizado = await _inventarioService.AutorizarInventario(id);
             return Ok(inventarioAutorizado);

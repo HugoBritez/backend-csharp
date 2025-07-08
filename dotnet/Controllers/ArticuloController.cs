@@ -3,6 +3,7 @@ using Api.Repositories.Interfaces;
 using Api.Models.Dtos.Articulo;
 using Microsoft.AspNetCore.Authorization;
 using Api.Models.Dtos;
+using Api.Models.Entities;
 
 namespace Api.Controllers
 {
@@ -13,10 +14,12 @@ namespace Api.Controllers
     public class ArticuloController : ControllerBase
     {
     private readonly IArticuloRepository _articuloRepository;
-
-    public ArticuloController(IArticuloRepository articuloRepository)
+    private readonly IArticuloLoteRepository _articuloLoteRepository;
+    
+    public ArticuloController(IArticuloRepository articuloRepository, IArticuloLoteRepository articuloLoteRepository)
     {
         _articuloRepository = articuloRepository;
+        _articuloLoteRepository = articuloLoteRepository;
     }
 
     [HttpGet]
@@ -136,6 +139,16 @@ namespace Api.Controllers
         var articulo = await _articuloRepository.BuscarArticuloPorCodigo(codigoBarra, deposito, stock);
 
         return Ok(articulo);
+    }
+
+    [HttpGet("lotes")]
+    public async Task<ActionResult<IEnumerable<ArticuloLote>>> ArticulosLotes(
+        [FromQuery] uint articulo_id
+    )
+    {
+        var lotes = await _articuloLoteRepository.GetByArticulo(articulo_id);
+
+        return Ok(lotes);
     }
 }
 }

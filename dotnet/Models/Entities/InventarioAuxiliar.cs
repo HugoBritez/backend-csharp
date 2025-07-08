@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Api.Models.Entities
 {
@@ -31,6 +32,7 @@ namespace Api.Models.Entities
         public DateTime? FechaCierre { get; set; }
         [Column("hora_cierre")]
         public TimeSpan? HoraCierre { get; set; }
+        [JsonIgnore]
         public virtual ICollection<InventarioAuxiliarItems>? Items { get; set; }
     }
 }

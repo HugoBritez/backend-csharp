@@ -14,5 +14,5 @@ namespace Api.Repositories.Interfaces
         Task<ArticuloLote> Update(ArticuloLote articulo);
 
         Task<ArticuloLote?> BuscarPorDeposito(uint id_articulo,int control_vencimiento , uint id_deposito, string lote, DateTime vencimiento);
-            }
+    }
 }

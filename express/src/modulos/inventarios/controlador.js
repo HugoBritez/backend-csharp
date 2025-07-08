@@ -542,13 +542,19 @@ module.exports = function (dbInyectada) {
       const cantidadSQL =
         cantidad !== undefined && cantidad !== null ? cantidad : "NULL";
 
-      const resultadoUpdate = await db.sql(`
+        const updateQuery = `
           UPDATE inventario_auxiliar_items 
           SET cantidad_scanner = ${cantidadSQL}
           WHERE id_articulo = ${id_articulo} 
           AND id_lote = ${id_lote} 
           AND id_inventario = ${id_inventario}
-        `);
+        `
+
+      console.log('updateQuery', updateQuery)
+
+      const resultadoUpdate = await db.sql(updateQuery);
+
+        console.log('resultadoUpdate', resultadoUpdate)
 
       // Confirmar transacción
       await db.sql("COMMIT");

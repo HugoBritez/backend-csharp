@@ -915,7 +915,8 @@ module.exports = function (dbInyectada) {
 
     const query = `
         UPDATE pedidos 
-        SET p_imprimir_preparacion = 1 ${preparadoPorQuery}
+        SET p_imprimir_preparacion = 1 ${preparadoPorQuery},
+        p_imprimir = 1
         WHERE p_codigo IN (${pedidoIds.join(',')})
     `;
 
@@ -1220,6 +1221,7 @@ const getPedidosParaAgenda = async (vendedor, cliente, busqueda) => {
         dp.dp_codigo as id_detalle,
         p.p_codigo as id_pedido,
         DATE_FORMAT(p.p_fecha, '%d/%m/%Y') as fecha,
+        cli.cli_codigo as codCliente,
         cli.cli_razon as cliente,
         ar.ar_codbarra as cod_barra,
         ar.ar_descripcion as descripcion,
@@ -1236,6 +1238,7 @@ const getPedidosParaAgenda = async (vendedor, cliente, busqueda) => {
         dp.dp_cantidad as cantidad_pedido_num,
         dp.dp_codigolote as id_lote,
         dep.dep_descripcion as deposito,
+        p.p_imprimir as impreso,
         df.obs as observacion,
         IF(
           EXISTS(

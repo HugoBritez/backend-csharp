@@ -10,7 +10,7 @@
     "dev:ts": "ts-node-dev --respawn --transpile-only src/index.ts"
   },
   "dependencies": {
-    "bcrypt": "^5.1.0",
+    "bcryptjs": "^2.4.3",
     "core-js": "^3.8.3",
     "cors": "^2.8.5",
     "express": "^4.18.2",

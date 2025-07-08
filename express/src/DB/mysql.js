@@ -1,6 +1,6 @@
 const mysql = require("mysql2");
 const config = require("../config");
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const dbConfig = {
   host: config.mysql.host,
@@ -171,9 +171,12 @@ async function login(tabla, user, pass) {
 
       // Si tiene op_contrasena_web, verificar con bcrypt
       if (userData.op_contrasena_web) {
+        console.log(`[LOGIN] Usuario ya migrado, verificando con bcrypt: ${user}`);
         const isValid = await bcrypt.compare(pass, userData.op_contrasena_web);
         if (isValid) {
+          console.log(`[LOGIN] Contraseña bcrypt válida para usuario: ${user}`);
           delete userData.op_contrasena_web;
+          console.log(`[LOGIN] Devolviendo userData para usuario: ${user}`, { op_codigo: userData.op_codigo, op_usuario: userData.op_usuario });
           return resolve(userData);
         }
         
@@ -185,9 +188,15 @@ async function login(tabla, user, pass) {
           // Contraseña cambió en Fox - actualizar hash
           console.log(`[LOGIN] Contraseña detectada como cambiada en Fox: ${user}`);
           const hashedPassword = await bcrypt.hash(pass, 12);
-          await conexion.query('UPDATE operadores SET op_contrasena_web = ? WHERE op_codigo = ?', [hashedPassword, userData.op_codigo]);
+          await new Promise((resolve, reject) => {
+            conexion.query('UPDATE operadores SET op_contrasena_web = ? WHERE op_codigo = ?', [hashedPassword, userData.op_codigo], (error, result) => {
+              if (error) return reject(error);
+              resolve(result);
+            });
+          });
           
           delete userData.op_contrasena_web;
+          console.log(`[LOGIN] Devolviendo userData después de actualizar hash para usuario: ${user}`, { op_codigo: userData.op_codigo, op_usuario: userData.op_usuario });
           return resolve(userData);
         } else {
           // Ni bcrypt ni MySQL coinciden - es un typo
@@ -198,29 +207,33 @@ async function login(tabla, user, pass) {
       
       // Si no tiene op_contrasena_web, usar MySQL y migrar
       console.log(`[LOGIN] Usuario no migrado, migrando: ${user}`);
-      const tempConnection = mysql.createConnection({
-        host: config.mysql.host,
-        port: config.mysql.port,
-        user: user,
-        password: pass,
-        database: config.mysql.database,
-        connectionTimeout: 10000,
-      });
+      
+      // Verificar credenciales primero
+      const isMySqlValid = await verifyMySqlCredentials(user, pass);
+      if (!isMySqlValid) {
+        console.log(`[LOGIN] Credenciales inválidas para migración: ${user}`);
+        return reject(new Error('Credenciales inválidas'));
+      }
 
-      tempConnection.connect(async (err) => {
-        if (err) {
-          tempConnection.end();
-          return reject(new Error('Credenciales inválidas'));
-        }
-
-        // Migrar contraseña
+      // Migrar contraseña
+      try {
+        console.log(`[LOGIN] Migrando contraseña para usuario: ${user}`);
         const hashedPassword = await bcrypt.hash(pass, 12);
-        await conexion.query('UPDATE operadores SET op_contrasena_web = ? WHERE op_codigo = ?', [hashedPassword, userData.op_codigo]);
+        await new Promise((resolve, reject) => {
+          conexion.query('UPDATE operadores SET op_contrasena_web = ? WHERE op_codigo = ?', [hashedPassword, userData.op_codigo], (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          });
+        });
         
-        tempConnection.end();
+        console.log(`[LOGIN] Migración exitosa para usuario: ${user}`);
         delete userData.op_contrasena_web;
-        resolve(userData);
-      });
+        console.log(`[LOGIN] Devolviendo userData después de migración para usuario: ${user}`, { op_codigo: userData.op_codigo, op_usuario: userData.op_usuario });
+        return resolve(userData);
+      } catch (migrationError) {
+        console.error(`[LOGIN] Error migrando contraseña para usuario: ${user}`, migrationError);
+        return reject(new Error('Error interno del servidor'));
+      }
 
     } catch (error) {
       console.error(`[LOGIN] Error general en login para usuario: ${user}`, error);
@@ -238,7 +251,6 @@ async function verifyMySqlCredentials(user, pass) {
       user: user,
       password: pass,
       database: config.mysql.database,
-      connectionTimeout: 5000,
     });
 
     tempConnection.connect((err) => {

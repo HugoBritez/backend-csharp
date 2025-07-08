@@ -37,11 +37,28 @@ async function verificarUsuario(req, res, next){
 
 async function login(req, res, next){
     try {
+        console.log(`[RUTA] Iniciando login para usuario: ${req.body.user}`);
         const data = await controlador.login(req.body.user, req.body.pass);
-        const token = auth.asignarToken({ ...data});
+        console.log(`[RUTA] Controlador devolvió datos para usuario: ${req.body.user}`, { 
+            tieneData: !!data, 
+            op_codigo: data?.op_codigo, 
+            op_usuario: data?.op_usuario 
+        });
+        
+        // Validar que data no sea undefined y tenga las propiedades necesarias
+        if (!data || !data.op_codigo) {
+            console.error(`[RUTA] Datos inválidos para usuario: ${req.body.user}`, data);
+            return respuesta.error(req, res, 'Datos de usuario inválidos', 500);
+        }
+        
+        console.log(`[RUTA] Generando token para usuario: ${req.body.user}`);
+        console.log(`[RUTA] Datos que se pasan a asignarToken:`, data);
+        const token = auth.asignarToken(data);
         const datos = {usuario: data, token: token };
+        console.log(`[RUTA] Login exitoso para usuario: ${req.body.user}`);
         respuesta.success(req, res, datos, 200); 
     } catch (err) {
+        console.error(`[RUTA] Error en login para usuario: ${req.body.user}`, err);
         /*respuesta.error(req, res, err, 500)*/
         next(err);
     }
