@@ -22,5 +22,22 @@ namespace Api.Repositories.Implementations
 
             return detallePedidoCreado.Entity;
         }
+
+        public async Task<DetallePedidoFaltante?> GetById(uint id)
+        {
+            return await _context.DetallePedidoFaltante.FirstOrDefaultAsync(x => x.Codigo == id);
+        }
+
+        public async Task<DetallePedidoFaltante?> GetByPedido(uint pedido)
+        {
+            return await _context.DetallePedidoFaltante.FirstOrDefaultAsync(x => x.DetallePedido == pedido);
+        }
+
+        public async Task<DetallePedidoFaltante> Update(DetallePedidoFaltante detalle)
+        {
+            _context.DetallePedidoFaltante.Update(detalle);
+            await _context.SaveChangesAsync();
+            return detalle;
+        }
     }
 }

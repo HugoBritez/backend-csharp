@@ -1,4 +1,3 @@
-
 using Api.Models.Entities;
 using Api.Models.ViewModels;
 using Api.Repositories.Interfaces;
@@ -93,40 +92,58 @@ namespace Api.Repositories.Implementations
                 parameters.Add("FechaDesde", fechaDesde);
                 parameters.Add("FechaHasta", fechaHasta);
                 parameters.Add("Proveedor", proveedor);
+                // todo: agregar filtrado por cliente
+
 
                 var query = @"
                     SELECT
                         ar.ar_codigo as CodigoProducto,
                         ar.ar_descripcion as DescripcionProducto,
-                        COALESCE(SUM(al.al_cantidad), 0) as TotalStock,
-                        COALESCE(SUM(dv.deve_cantidad), 0) as TotalItems,
-                        COALESCE(SUM(dv.deve_exentas + dv.deve_cinco + dv.deve_diez),0) as TotalImporte,
-                        COALESCE(SUM(
-                            CASE
-                                WHEN v.ve_saldo = 0 THEN (dv.deve_exentas + dv.deve_cinco + dv.deve_diez)
-                                ELSE 0
-                            END
-                        ), 0) as MontoCobrado,
-                        (
-                            SELECT SUM(dc.dc_cantidad)
-                            FROM detalle_compras dc
-                            INNER JOIN compras co ON dc.dc_compra = co.co_codigo
-                            WHERE co.co_proveedor = @Proveedor
-                            AND co_fecha BETWEEN @FechaDesde AND @FechaHasta
-                            AND dc.dc_articulo = ar.ar_codigo
-                            GROUP BY dc.dc_articulo
-                         ) as TotalCompras
+                        COALESCE(stock.TotalStock, 0) as TotalStock,
+                        COALESCE(ventas.TotalItems, 0) as TotalItems,
+                        COALESCE(ventas.TotalImporte, 0) as TotalImporte,
+                        COALESCE(ventas.MontoCobrado, 0) as MontoCobrado,
+                        COALESCE(compras.TotalCompras, 0) as TotalCompras
                     FROM articulos ar
-                    INNER JOIN articulos_lotes al ON ar.ar_codigo = al.al_articulo
                     INNER JOIN articulos_proveedores ap ON ar.ar_codigo = ap.arprove_articulo
                     INNER JOIN proveedores p ON ap.arprove_prove = p.pro_codigo
-                    LEFT JOIN detalle_ventas dv ON ar.ar_codigo = dv.deve_articulo
-                    LEFT JOIN ventas v ON dv.deve_venta = v.ve_codigo
-                    WHERE v.ve_estado = 1
-                    AND p.pro_codigo = @Proveedor
-                    AND v.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
-                    GROUP BY ar.ar_codigo, ar.ar_descripcion, ap.arprove_prove, p.pro_razon
-                    ORDER BY ar.ar_codigo, ap.arprove_prove;
+                    LEFT JOIN (
+                        SELECT 
+                            al.al_articulo,
+                            SUM(al.al_cantidad) as TotalStock
+                        FROM articulos_lotes al
+                        GROUP BY al.al_articulo
+                    ) stock ON ar.ar_codigo = stock.al_articulo
+                    INNER JOIN (
+                        SELECT
+                            dv.deve_articulo,
+                            SUM(dv.deve_cantidad) as TotalItems,
+                            SUM(dv.deve_exentas + dv.deve_cinco + dv.deve_diez) as TotalImporte,
+                            SUM(
+                                CASE
+                                    WHEN v.ve_saldo = 0 THEN (dv.deve_exentas + dv.deve_cinco + dv.deve_diez)
+                                    ELSE 0
+                                END
+                            ) as MontoCobrado
+                        FROM detalle_ventas dv
+                        INNER JOIN ventas v ON dv.deve_venta = v.ve_codigo
+                        WHERE v.ve_estado = 1
+                        AND v.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
+                        GROUP BY dv.deve_articulo
+                    ) ventas ON ar.ar_codigo = ventas.deve_articulo
+                    LEFT JOIN (
+                        SELECT 
+                            dc.dc_articulo,
+                            SUM(dc.dc_cantidad) as TotalCompras
+                        FROM detalle_compras dc
+                        INNER JOIN compras co ON dc.dc_compra = co.co_codigo
+                        WHERE co.co_proveedor = @Proveedor
+                        AND co.co_fecha BETWEEN @FechaDesde AND @FechaHasta
+                        GROUP BY dc.dc_articulo
+                    ) compras ON ar.ar_codigo = compras.dc_articulo
+                    WHERE p.pro_codigo = @Proveedor
+                    AND ventas.TotalItems > 0
+                    ORDER BY ar.ar_codigo;
                 ";
 
                 var result = await connection.QueryAsync<ReporteProveedores>(query, parameters);

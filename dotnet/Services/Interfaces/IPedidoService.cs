@@ -1,6 +1,7 @@
 using Api.Models.Entities;
 using Api.Models.ViewModels;
 
+
 namespace Api.Services.Interfaces
 {
     public interface IPedidosService
@@ -23,5 +24,7 @@ namespace Api.Services.Interfaces
         Task<ResponseViewModel<Pedido>> AutorizarPedido(uint idPedido, string usuario, string password);
 
         Task<DetallePedido?> CambiarLoteDetallePedido(uint idDetallePedido, string lote, uint idLote);
+
+        Task<DetallePedidoFaltante> AnularFaltante(uint detalleFaltante);
     }
 }

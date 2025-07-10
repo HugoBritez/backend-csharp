@@ -4,6 +4,7 @@ using Dapper;
 using System.Text.Json;
 using Api.Audit.Services;
 using Api.Repositories.Base;
+using Api.Repositories.Interfaces;
 
 namespace Api.Auth.Services
 {
@@ -11,22 +12,60 @@ namespace Api.Auth.Services
     {
         private readonly IJwtService _jwtService;
 
+        private readonly IProveedoresRepository _proveedoresRepository;
+
         private readonly IAuditoriaService _auditoriaService;
 
 
-        public AuthService(IConfiguration configuration, IJwtService jwtService, IAuditoriaService auditoriaService) : base(configuration)
+        public AuthService(IConfiguration configuration, IJwtService jwtService, IAuditoriaService auditoriaService, IProveedoresRepository proveedoresRepository) : base(configuration)
         {
             _jwtService = jwtService;
             _auditoriaService = auditoriaService;
+            _proveedoresRepository = proveedoresRepository;
         }
 
 
         public async Task<LoginProveedorResponse> LoginProveedor(string Email, string Ruc)
         {
-            try{ 
+            try
+            {
+            
+            var codigoSecreto = "A7B9C2D4";
+                /*
+                Usuario ingresa Email + RUC
+                        ↓
+                    Se busca proveedor por RUC
+                        ↓
+                    ¿Email coincide con Key (código secreto)?
+                        ↓ SÍ → esAdmin = 1
+                        ↓ NO → ¿Email coincide con Mail?
+                            ↓ SÍ → esAdmin = 0
+                            ↓ NO → Error: "Email o código de acceso incorrecto"
+                */
+
+                int esAdmin = 0;
                 var parameters = new DynamicParameters();
                 parameters.Add("Email", Email);
                 parameters.Add("Ruc", Ruc);
+
+                var proveedorALoggear = await _proveedoresRepository.GetByRuc(Ruc) ?? throw new Exception("Proveedor no encontrado");
+
+                // Verificar si el usuario está intentando usar código secreto (admin) o email normal
+                if (codigoSecreto == Email)
+                {
+                    // Usuario está usando código secreto - es admin
+                    esAdmin = 1;
+                }
+                else if (proveedorALoggear.Mail == Email)
+                {
+                    // Usuario está usando email correcto - no es admin
+                    esAdmin = 0;
+                }
+                else
+                {
+                    // Email/código no coincide con ninguno de los dos
+                    throw new Exception("Email o código de acceso incorrecto");
+                }
 
                 using var connection = await GetConnectionAsync();
                 var query = @"
@@ -34,13 +73,13 @@ namespace Api.Auth.Services
                     pro.pro_codigo,
                     pro.pro_razon
                   FROM proveedores pro
-                  WHERE pro.pro_mail = @Email AND pro.pro_ruc = @Ruc
+                  WHERE pro.pro_ruc = @Ruc
                 ";
 
                 var result = await connection.QueryFirstOrDefaultAsync<dynamic>(query, parameters);
 
                 if (result == null)
-                    throw new Exception("Email o RUC incorrectos");
+                    throw new Exception("RUC incorrecto");
 
                 var response = new LoginProveedorResponse
                 {
@@ -56,6 +95,15 @@ namespace Api.Auth.Services
                     }
                 };
 
+                if (esAdmin == 1)
+                {
+                    response.ProEsAdmin = 1;
+                }
+                else
+                {
+                    response.ProEsAdmin = 0;
+                }
+
                 return response;
             }
             catch (Exception ex)
@@ -70,7 +118,7 @@ namespace Api.Auth.Services
             try
             {
                 using var connection = await GetConnectionAsync();
-                
+
                 var query = @"
                     SELECT 
                         operadores.*,

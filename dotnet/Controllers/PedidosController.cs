@@ -27,7 +27,6 @@ namespace Api.Controllers
             _detallePedidosRepository = detallePedidoRepository;
         }
 
-
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PedidoDetalladoViewModel>>> GetPedidos(
             [FromQuery] string? fechaDesde,
@@ -75,6 +74,20 @@ namespace Api.Controllers
         {
             var res = await _pedidosService.AnularPedido(anularPedidoDTO.codigo, anularPedidoDTO.motivo);
 
+            return Ok(res);
+        }
+
+        public class AnularFaltanteDTO
+    {
+        public uint detalleFaltante { get; set; }
+    }
+
+        [HttpPost("anular-faltante")]
+        public async Task<ActionResult<string>> AnularFaltante(
+            [FromBody] AnularFaltanteDTO request
+        )
+        {
+            var res = await _pedidosService.AnularFaltante(request.detalleFaltante);
             return Ok(res);
         }
 

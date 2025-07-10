@@ -94,6 +94,19 @@ namespace Api.Services.Implementations
             return pedidoCreado;
         }
 
+
+        public async Task<DetallePedidoFaltante> AnularFaltante(uint detalleFaltante)
+        {
+            var detalleFaltanteAAnular = await _detallePedidoFaltanteRepository.GetByPedido(detalleFaltante);
+            if (detalleFaltanteAAnular == null)
+            {
+                throw new Exception("Detalle de faltante no encontrado");
+            }
+            detalleFaltanteAAnular.Cantidad = 0;
+            await _detallePedidoFaltanteRepository.Update(detalleFaltanteAAnular);
+            return detalleFaltanteAAnular;
+        }
+
         public async Task<string> AnularPedido(uint codigo, string motivo)
         {
             var pedidoAAnular = await _pedidoRepository.GetById(codigo);
@@ -200,6 +213,8 @@ namespace Api.Services.Implementations
                 Message = "Pedido autorizado satisfactoriamente"
             };
         }
+
+
 
         public async Task<DetallePedido?> CambiarLoteDetallePedido(uint idDetallePedido, string lote, uint idLote)
         {

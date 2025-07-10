@@ -9,6 +9,7 @@ namespace Api.Auth.Models
     public class LoginProveedorResponse
     {
         public string Token {get; set;} = string.Empty;
+        public int ProEsAdmin {get; set;}
         public LoginProveedor Proveedor {get; set;} = new();
     }
 }
