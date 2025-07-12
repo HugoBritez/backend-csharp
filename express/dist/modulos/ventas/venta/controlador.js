@@ -49,6 +49,8 @@ module.exports = function (dbInyectada) {
     `;
         return db.sql(query);
     }
+
+    
     function getCabeceras(fecha_desde, fecha_hasta, sucursal, cliente, vendedor, articulo, moneda, factura, venta, estadoVenta, remisiones, listarFacturasSinCDC, page = 1, itemsPorPagina = 50) {
         let where = "1 = 1 ";
         let limitOffset = "";

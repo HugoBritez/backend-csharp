@@ -14,7 +14,7 @@ namespace Api.Repositories.Interfaces{
 
         Task<Proveedor?> GetByRuc(string ruc);
 
-        Task<IEnumerable<ReporteProveedores>> GetReporteProveedores(string? fechaDesde, string? fechaHasta, uint? proveedor);
+        Task<IEnumerable<ReporteProveedores>> GetReporteProveedores(string? fechaDesde, string? fechaHasta, uint? proveedor, uint? cliente);
 
     }
 }

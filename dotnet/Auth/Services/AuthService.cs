@@ -29,20 +29,18 @@ namespace Api.Auth.Services
         {
             try
             {
-            
-            var codigoSecreto = "A7B9C2D4";
                 /*
                 Usuario ingresa Email + RUC
                         ↓
                     Se busca proveedor por RUC
                         ↓
-                    ¿Email coincide con Key (código secreto)?
-                        ↓ SÍ → esAdmin = 1
-                        ↓ NO → ¿Email coincide con Mail?
-                            ↓ SÍ → esAdmin = 0
+                    ¿El proveedor tiene Key (código secreto)?
+                        ↓ SÍ → ¿Email coincide con Key o con Mail?
+                            ↓ SÍ → Acceso permitido
                             ↓ NO → Error: "Email o código de acceso incorrecto"
+                        ↓ NO → Error: "Proveedor no tiene acceso al sistema"
                 */
-
+                
                 int esAdmin = 0;
                 var parameters = new DynamicParameters();
                 parameters.Add("Email", Email);
@@ -50,8 +48,14 @@ namespace Api.Auth.Services
 
                 var proveedorALoggear = await _proveedoresRepository.GetByRuc(Ruc) ?? throw new Exception("Proveedor no encontrado");
 
+                // Verificar si el proveedor tiene un key (código secreto) - REQUERIDO para cualquier tipo de acceso
+                if (string.IsNullOrEmpty(proveedorALoggear.Key))
+                {
+                    throw new Exception("Proveedor no tiene acceso al sistema");
+                }
+
                 // Verificar si el usuario está intentando usar código secreto (admin) o email normal
-                if (codigoSecreto == Email)
+                if (proveedorALoggear.Key == Email)
                 {
                     // Usuario está usando código secreto - es admin
                     esAdmin = 1;

@@ -30,10 +30,11 @@ namespace Api.Controllers
         public async Task<ActionResult<IEnumerable<ReporteProveedores>>> GetReporteProveedores(
             [FromQuery] string? fechaDesde,
             [FromQuery] string? fechaHasta,
-            [FromQuery] uint? proveedor
+            [FromQuery] uint? proveedor,
+            [FromQuery] uint? cliente
         )
         {
-            var reporte = await _proveedoresRepository.GetReporteProveedores(fechaDesde, fechaHasta, proveedor);
+            var reporte = await _proveedoresRepository.GetReporteProveedores(fechaDesde, fechaHasta, proveedor, cliente);
             return Ok(reporte);
         }
     }

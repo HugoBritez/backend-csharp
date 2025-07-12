@@ -114,5 +114,18 @@ namespace Api.Controllers
             var metaGeneralCreada = await _metaGeneralRepository.CrearMetaGeneral(metaGeneral);
             return CreatedAtAction(nameof(CrearMetaGeneral), new { id = metaGeneralCreada.Id }, metaGeneralCreada);
         }
+
+
+        [HttpGet("reporte-ventas-proveedor")]
+        public async Task<ActionResult<IEnumerable<ReporteVentasPorProveedor>>> GetReporteVentasPorProveedor(
+            [FromQuery] string? fecha_desde,
+            [FromQuery] string? fecha_hasta,
+            [FromQuery] uint? proveedor,
+            [FromQuery] uint? cliente
+        )
+        {
+            var reporte = await _ventaRepository.GetReporteVentasPorProveedor(fecha_desde, fecha_hasta, proveedor, cliente);  
+            return Ok(reporte);
+        }
     }
 }

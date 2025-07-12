@@ -50,12 +50,12 @@ namespace Api.Controllers
 
         [HttpGet("detalles")]
         public async Task<ActionResult<IEnumerable<PedidoDetalleViewModel>>> GetDetalles(
-            [FromQuery] Pedido pedido
+            [FromQuery] uint codigo
         )
         {
-            var detalles = await _detallePedidosRepository.GetDetallesPedido(pedido);
+            var detalles = await _detallePedidosRepository.GetDetallesPedido(codigo);
 
-            return Ok(pedido);
+            return Ok(detalles);
         }
 
         [HttpPost]
@@ -112,6 +112,23 @@ namespace Api.Controllers
         {
             var response = await _pedidosRepository.ReportePedidosFacturados(fechaDesde, fechaHasta, articulo, vendedor, cliente, sucursal);
             return Ok(response);
+        }
+
+        [HttpGet("reporte-pedidos-proveedor")]
+        public async Task<ActionResult<IEnumerable<ReportePedidosPorProveedor>>> GetReportePedidosPorProveedor(
+            [FromQuery] string? fecha_desde,
+            [FromQuery] string? fecha_hasta,
+            [FromQuery] uint? proveedor,
+            [FromQuery] uint? cliente,
+            [FromQuery] uint? nroPedido,
+            [FromQuery] uint? vendedor,
+            [FromQuery] uint? articulo,
+            [FromQuery] uint? moneda,
+            [FromQuery] int? estado
+        )
+        {
+            var reporte = await _pedidosRepository.GetReportePedidosPorProveedor(fecha_desde, fecha_hasta, proveedor, cliente, nroPedido, vendedor, articulo, moneda, estado);
+            return Ok(reporte);
         }
 
         public class CambiarLoteDetallePedidoDTO

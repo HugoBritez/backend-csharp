@@ -20,7 +20,7 @@ router.post("/agregar-venta-nuevo", seguridad(), agregarVentaNuevo);
 router.post("/agregar", seguridad(), agregar);
 router.get("/detalles", seguridad(), detalles);
 router.get("/cliente/", seguridad(), cliente);
-router.post("/consultas", seguridad(), consultas);
+router.post("/consultas", consultas);
 router.post("/modificar", seguridad(), modificar);
 router.post("/resumen", resumen);
 router.post("/resumen-totales", resumenTotales);

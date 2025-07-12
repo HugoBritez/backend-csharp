@@ -95,16 +95,27 @@ namespace Api.Services.Implementations
         }
 
 
-        public async Task<DetallePedidoFaltante> AnularFaltante(uint detalleFaltante)
+        public async Task<DetallePedidoFaltante> AnularFaltante(uint detallePedidoId)
         {
-            var detalleFaltanteAAnular = await _detallePedidoFaltanteRepository.GetByPedido(detalleFaltante);
+            Console.WriteLine($"Iniciando AnularFaltante - DetallePedidoId: {detallePedidoId}");
+            
+            // El parámetro detallePedidoId es el código del detalle del pedido (d_detalle_pedido)
+            var detalleFaltanteAAnular = await _detallePedidoFaltanteRepository.GetByPedido(detallePedidoId);
             if (detalleFaltanteAAnular == null)
             {
+                Console.WriteLine($"Error: No se encontró faltante para el detalle pedido: {detallePedidoId}");
                 throw new Exception("Detalle de faltante no encontrado");
             }
+            
+            Console.WriteLine($"Faltante encontrado - Código: {detalleFaltanteAAnular.Codigo}, Cantidad actual: {detalleFaltanteAAnular.Cantidad}");
+            
             detalleFaltanteAAnular.Cantidad = 0;
-            await _detallePedidoFaltanteRepository.Update(detalleFaltanteAAnular);
-            return detalleFaltanteAAnular;
+            Console.WriteLine($"Cantidad establecida a 0");
+            
+            var resultado = await _detallePedidoFaltanteRepository.Update(detalleFaltanteAAnular);
+            Console.WriteLine($"Update completado - Cantidad final: {resultado.Cantidad}");
+            
+            return resultado;
         }
 
         public async Task<string> AnularPedido(uint codigo, string motivo)

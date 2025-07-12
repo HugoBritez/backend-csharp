@@ -274,5 +274,114 @@ namespace Api.Repositories.Implementations
         {
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<ReportePedidosPorProveedor>> GetReportePedidosPorProveedor(string? fechaDesde, string? fechaHasta, uint? proveedor, uint? cliente, uint? nroPedido, uint? vendedor, uint? articulo, uint? moneda, int? estado)
+        {
+            try
+            {
+                using var connection = await GetConnectionAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("FechaDesde", fechaDesde);
+                parameters.Add("FechaHasta", fechaHasta);
+                parameters.Add("Proveedor", proveedor);
+                parameters.Add("Cliente", cliente);
+                parameters.Add("NroPedido", nroPedido);
+                parameters.Add("Vendedor", vendedor);
+                parameters.Add("Articulo", articulo);
+                parameters.Add("Moneda", moneda);
+                parameters.Add("Estado", estado);
+
+                Console.WriteLine(fechaDesde);
+                Console.WriteLine(fechaHasta);
+                Console.WriteLine(proveedor);
+                Console.WriteLine(cliente);
+
+                var query = @"
+                    SELECT DISTINCT
+                        p.p_codigo as PedidoId,
+                        cli.cli_razon as Cliente,
+                        cli.cli_ruc as ClienteRuc,
+                        p.p_fecha as Fecha,
+                        IFNULL(vp.ve_factura, '') as Factura,
+                        ope.op_nombre as Vendedor,
+                        op.op_nombre as Operador,
+                        FORMAT(ROUND(SUM(dp.dp_cantidad * (dp.dp_precio - dp.dp_descuento)), 0), 0) as Total,
+                        IF(p.p_credito = 1, 'Crédito', 'Contado') as Condicion,
+                        IF(p.p_estado = 1, 'Pendiente', IF(p.p_estado = 2, 'Facturado', 'Todos')) as Estado,
+                        p.p_estado as EstadoNum,
+                        COALESCE(pedidos_totales.TotalItems, 0) as TotalItems,
+                        COALESCE(pedidos_totales.TotalImporte, 0) as TotalImporte,
+                        dep.dep_descripcion as Deposito,
+                        m.mo_descripcion as Moneda,
+                        a.a_descripcion as Area,
+                        IFNULL((SELECT
+                            area.a_descripcion AS descripcion
+                            FROM area_secuencia arse
+                            INNER JOIN area area ON arse.ac_secuencia_area = area.a_codigo
+                            WHERE arse.ac_area = p.p_area
+                        ), '-') as SiguienteArea,
+                        @Proveedor as CodigoProveedor,
+                        (SELECT pro_razon FROM proveedores WHERE pro_codigo = @Proveedor) as Proveedor,
+                        IFNULL(p.p_obs, '') as Obs,
+                        p.p_cantcuotas as CantCuotas,
+                        p.p_entrega as Entrega,
+                        IF(p.p_acuerdo = 1, 'Tiene acuerdo comercial', '') as Acuerdo
+                    FROM pedidos p
+                    LEFT JOIN clientes cli ON p.p_cliente = cli.cli_codigo
+                    LEFT JOIN monedas m ON p.p_moneda = m.mo_codigo
+                    LEFT JOIN operadores op ON p.p_operador = op.op_codigo
+                    LEFT JOIN operadores ope ON p.p_vendedor = ope.op_codigo
+                    LEFT JOIN area a ON p.p_area = a.a_codigo
+                    LEFT JOIN depositos dep ON p.p_deposito = dep.dep_codigo
+                    LEFT JOIN ventas vp ON p.p_codigo = vp.ve_pedido
+                    LEFT JOIN detalle_pedido dp ON p.p_codigo = dp.dp_pedido
+                    INNER JOIN (
+                        SELECT DISTINCT dp2.dp_pedido
+                        FROM detalle_pedido dp2
+                        INNER JOIN articulos ar ON dp2.dp_articulo = ar.ar_codigo
+                        INNER JOIN articulos_proveedores ap ON ar.ar_codigo = ap.arprove_articulo
+                        INNER JOIN proveedores pr ON ap.arprove_prove = pr.pro_codigo
+                        WHERE pr.pro_codigo = @Proveedor
+                    ) pedidos_proveedor ON p.p_codigo = pedidos_proveedor.dp_pedido
+                    LEFT JOIN (
+                        SELECT
+                            dp3.dp_pedido,
+                            SUM(dp3.dp_cantidad) as TotalItems,
+                            SUM(dp3.dp_cantidad * dp3.dp_precio) as TotalImporte
+                        FROM detalle_pedido dp3
+                        INNER JOIN pedidos p3 ON dp3.dp_pedido = p3.p_codigo
+                        WHERE p3.p_estado IN (1, 2)
+                        AND p3.p_fecha BETWEEN @FechaDesde AND @FechaHasta
+                        " + (cliente.HasValue ? "AND p3.p_cliente = @Cliente" : "") + @"
+                        " + (nroPedido.HasValue ? "AND p3.p_codigo = @NroPedido" : "") + @"
+                        " + (vendedor.HasValue ? "AND p3.p_vendedor = @Vendedor" : "") + @"
+                        " + (articulo.HasValue ? "AND dp3.dp_articulo = @Articulo" : "") + @"
+                        " + (moneda.HasValue ? "AND p3.p_moneda = @Moneda" : "") + @"
+                        " + (estado.HasValue ? "AND p3.p_estado = @Estado" : "") + @"
+                        GROUP BY dp3.dp_pedido
+                    ) pedidos_totales ON p.p_codigo = pedidos_totales.dp_pedido
+                    WHERE p.p_estado IN (1, 2)
+                    AND p.p_fecha BETWEEN @FechaDesde AND @FechaHasta
+                    " + (cliente.HasValue ? "AND p.p_cliente = @Cliente" : "") + @"
+                    " + (nroPedido.HasValue ? "AND p.p_codigo = @NroPedido" : "") + @"
+                    " + (vendedor.HasValue ? "AND p.p_vendedor = @Vendedor" : "") + @"
+                    " + (articulo.HasValue ? "AND dp.dp_articulo = @Articulo" : "") + @"
+                    " + (moneda.HasValue ? "AND p.p_moneda = @Moneda" : "") + @"
+                    " + (estado.HasValue ? "AND p.p_estado = @Estado" : "") + @"
+                    GROUP BY p.p_codigo
+                    ORDER BY p.p_codigo DESC;
+                ";
+
+                Console.WriteLine(query);
+
+                var result = await connection.QueryAsync<ReportePedidosPorProveedor>(query, parameters);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error de conexión: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

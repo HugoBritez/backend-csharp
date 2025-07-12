@@ -19,14 +19,14 @@ namespace Api.Repositories.Implementations
 
         public async Task<IEnumerable<ProveedorViewModel>> GetProveedores(string? busqueda)
         {
-        var query = _context.Proveedores
-        .Include(p => p.Zona)
-        .Select(p => new ProveedorViewModel
-        {
-            ProCodigo = p.Codigo,
-            ProRazon = p.Razon,
-            ProZona = p.Zona != null ? p.Zona.Descripcion : null
-        });
+            var query = _context.Proveedores
+            .Include(p => p.Zona)
+            .Select(p => new ProveedorViewModel
+            {
+                ProCodigo = p.Codigo,
+                ProRazon = p.Razon,
+                ProZona = p.Zona != null ? p.Zona.Descripcion : null
+            });
 
             if (!string.IsNullOrEmpty(busqueda))
             {
@@ -84,16 +84,16 @@ namespace Api.Repositories.Implementations
             return data;
         }
 
-        public async Task<IEnumerable<ReporteProveedores>> GetReporteProveedores(string? fechaDesde, string? fechaHasta, uint? proveedor)
+        public async Task<IEnumerable<ReporteProveedores>> GetReporteProveedores(string? fechaDesde, string? fechaHasta, uint? proveedor, uint? cliente)
         {
-            try{
+            try
+            {
                 using var connection = await GetConnectionAsync();
                 var parameters = new DynamicParameters();
                 parameters.Add("FechaDesde", fechaDesde);
                 parameters.Add("FechaHasta", fechaHasta);
                 parameters.Add("Proveedor", proveedor);
-                // todo: agregar filtrado por cliente
-
+                parameters.Add("Cliente", cliente);
 
                 var query = @"
                     SELECT
@@ -103,7 +103,37 @@ namespace Api.Repositories.Implementations
                         COALESCE(ventas.TotalItems, 0) as TotalItems,
                         COALESCE(ventas.TotalImporte, 0) as TotalImporte,
                         COALESCE(ventas.MontoCobrado, 0) as MontoCobrado,
-                        COALESCE(compras.TotalCompras, 0) as TotalCompras
+                        COALESCE(compras.TotalCompras, 0) as TotalCompras,
+                        COALESCE(
+                            (SELECT dc.dc_precio 
+                             FROM detalle_compras dc
+                             INNER JOIN compras c ON dc.dc_compra = c.co_codigo
+                             WHERE dc.dc_articulo = ar.ar_codigo
+                             AND c.co_proveedor = @Proveedor
+                             AND c.co_fecha <= @FechaHasta
+                             ORDER BY c.co_fecha DESC
+                             LIMIT 1), 
+                            ar.ar_pcg
+                        ) as PrecioCosto,
+                        CASE 
+                            WHEN COALESCE(ventas.TotalImporte, 0) > 0 THEN
+                                ROUND(
+                                    ((ventas.TotalImporte - (COALESCE(ventas.TotalItems, 0) * 
+                                        COALESCE(
+                                            (SELECT dc.dc_precio 
+                                             FROM detalle_compras dc
+                                             INNER JOIN compras c ON dc.dc_compra = c.co_codigo
+                                             WHERE dc.dc_articulo = ar.ar_codigo
+                                             AND c.co_proveedor = @Proveedor
+                                             AND c.co_fecha <= @FechaHasta
+                                             ORDER BY c.co_fecha DESC
+                                             LIMIT 1), 
+                                            ar.ar_pcg
+                                        ))) / ventas.TotalImporte) * 100, 2
+                                )
+                            ELSE 0
+                        END as Utilidad,
+                        COALESCE(stock.TotalStock, 0) * ar.ar_pvg as Valorizacion
                     FROM articulos ar
                     INNER JOIN articulos_proveedores ap ON ar.ar_codigo = ap.arprove_articulo
                     INNER JOIN proveedores p ON ap.arprove_prove = p.pro_codigo
@@ -129,6 +159,7 @@ namespace Api.Repositories.Implementations
                         INNER JOIN ventas v ON dv.deve_venta = v.ve_codigo
                         WHERE v.ve_estado = 1
                         AND v.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
+                        " + (cliente.HasValue ? "AND v.ve_cliente = @Cliente" : "") + @"
                         GROUP BY dv.deve_articulo
                     ) ventas ON ar.ar_codigo = ventas.deve_articulo
                     LEFT JOIN (
@@ -144,11 +175,12 @@ namespace Api.Repositories.Implementations
                     WHERE p.pro_codigo = @Proveedor
                     AND ventas.TotalItems > 0
                     ORDER BY ar.ar_codigo;
-                ";
+";
 
                 var result = await connection.QueryAsync<ReporteProveedores>(query, parameters);
                 return result;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine($"Error de conexión: {ex.Message}");
                 throw;

@@ -6,9 +6,9 @@ const controlador = require('./index.js')
 const auth = require('../../auth/index.js')
 
 
-router.get('/filtro/:id/:operador',seguridad(), todos_filtro)
-router.get('/sucursal/:id',seguridad(), todos_sucursal)
-router.get('/',seguridad(), todos)
+router.get('/filtro/:id/:operador', todos_filtro)
+router.get('/sucursal/:id', todos_sucursal)
+router.get('/', todos)
 
 async function todos_filtro (req, res, next){
     try {

@@ -9,5 +9,8 @@ namespace Api.Models.ViewModels
         public decimal TotalImporte { get; set;}
         public decimal MontoCobrado { get; set;}
         public decimal TotalCompras { get; set;}
+        public decimal PrecioCosto { get; set; }
+        public decimal Utilidad { get; set; }
+        public decimal Valorizacion { get; set; }
     }
 }

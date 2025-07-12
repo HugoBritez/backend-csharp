@@ -35,9 +35,21 @@ namespace Api.Repositories.Implementations
 
         public async Task<DetallePedidoFaltante> Update(DetallePedidoFaltante detalle)
         {
-            _context.DetallePedidoFaltante.Update(detalle);
+            var detalleExistente = await _context.DetallePedidoFaltante.FindAsync(detalle.Codigo);
+            if (detalleExistente == null)
+            {
+                throw new InvalidOperationException($"Detalle faltante no encontrado: {detalle.Codigo}");
+            }
+            
+            detalleExistente.Cantidad = detalle.Cantidad;
+            detalleExistente.Situacion = detalle.Situacion;
+            detalleExistente.Observacion = detalle.Observacion;
+            
+            _context.Entry(detalleExistente).State = EntityState.Modified;
+            
             await _context.SaveChangesAsync();
-            return detalle;
+            
+            return detalleExistente;
         }
     }
 }

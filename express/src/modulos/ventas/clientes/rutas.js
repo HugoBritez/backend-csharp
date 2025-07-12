@@ -6,7 +6,7 @@ const controlador = require('./index.js')
 const auth = require('../../../auth/index.js')
 
 router.get('/', todos)
-router.get("/get-clientes", seguridad(), getClientes);
+router.get("/get-clientes",  getClientes);
 router.get('/:id',seguridad(), uno)
 router.post('/',seguridad(), agregar)
 router.put('/:id',seguridad(), eliminar)

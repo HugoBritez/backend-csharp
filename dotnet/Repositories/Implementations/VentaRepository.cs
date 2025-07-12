@@ -546,6 +546,92 @@ namespace Api.Repositories.Implementations
             return await connection.ExecuteScalarAsync<decimal>(query, parameters);
         }
 
+        public async Task<IEnumerable<ReporteVentasPorProveedor>> GetReporteVentasPorProveedor(string? fechaDesde, string? fechaHasta, uint? proveedor, uint? cliente)
+        {
+            try
+            {
+                using var connection = await GetConnectionAsync();
+                var parameters = new DynamicParameters();
+                parameters.Add("FechaDesde", fechaDesde);
+                parameters.Add("FechaHasta", fechaHasta);
+                parameters.Add("Proveedor", proveedor);
+                parameters.Add("Cliente", cliente);
+
+                var query = @"
+            SELECT 
+                ve.ve_codigo as CodigoVenta,
+                cli.cli_razon as Cliente,
+                cli.cli_ruc as ClienteRuc,
+                ve.ve_fecha as Fecha,
+                IFNULL(IF(ve.ve_factura <> '', ve.ve_factura, vl.ve_factura),'') as Factura,
+                v.op_nombre as Vendedor,
+                o.op_nombre as Operador,
+                ve.ve_total as Total,
+                ve.ve_descuento as Descuento,
+                ve.ve_saldo as Saldo,
+                IF(ve.ve_credito = 1, 'Crédito', 'Contado') as Condicion,
+                IF(ve.ve_estado = 1, 'Activo', 'Anulado') as Estado,
+                COALESCE(ventas.TotalItems, 0) as TotalItems,
+                COALESCE(ventas.TotalImporte, 0) as TotalImporte,
+                COALESCE(ventas.MontoCobrado, 0) as MontoCobrado,
+                dep.dep_descripcion as Deposito,
+                mo.mo_descripcion as Moneda,
+                s.descripcion as Sucursal,
+                @Proveedor as CodigoProveedor,
+                (SELECT pro_razon FROM proveedores WHERE pro_codigo = @Proveedor) as Proveedor
+            FROM ventas ve
+            INNER JOIN clientes cli ON ve.ve_cliente = cli.cli_codigo
+            INNER JOIN operadores v ON ve.ve_vendedor = v.op_codigo
+            INNER JOIN operadores o ON ve.ve_operador = o.op_codigo
+            INNER JOIN depositos dep ON ve.ve_deposito = dep.dep_codigo
+            INNER JOIN monedas mo ON ve.ve_moneda = mo.mo_codigo
+            INNER JOIN sucursales s ON ve.ve_sucursal = s.id
+            LEFT JOIN venta_vental vvl ON vvl.v_venta = ve.ve_codigo
+            LEFT JOIN ventasl vl ON vvl.v_vental = vl.ve_codigo
+            INNER JOIN (
+                SELECT  dv.deve_venta
+                FROM detalle_ventas dv
+                INNER JOIN articulos ar ON dv.deve_articulo = ar.ar_codigo
+                INNER JOIN articulos_proveedores ap ON ar.ar_codigo = ap.arprove_articulo
+                INNER JOIN proveedores p ON ap.arprove_prove = p.pro_codigo
+                WHERE p.pro_codigo = @Proveedor
+            ) ventas_proveedor ON ve.ve_codigo = ventas_proveedor.deve_venta
+            LEFT JOIN (
+                SELECT
+                    dv2.deve_venta,
+                    SUM(dv2.deve_cantidad) as TotalItems,
+                    SUM(dv2.deve_exentas + dv2.deve_cinco + dv2.deve_diez) as TotalImporte,
+                    SUM(
+                        CASE
+                            WHEN v2.ve_saldo = 0 THEN (dv2.deve_exentas + dv2.deve_cinco + dv2.deve_diez)
+                            ELSE 0
+                        END
+                    ) as MontoCobrado
+                FROM detalle_ventas dv2
+                INNER JOIN ventas v2 ON dv2.deve_venta = v2.ve_codigo
+                WHERE v2.ve_estado = 1
+                AND v2.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
+                " + (cliente.HasValue ? "AND v2.ve_cliente = @Cliente" : "") + @"
+                GROUP BY dv2.deve_venta
+            ) ventas ON ve.ve_codigo = ventas.deve_venta
+            WHERE ve.ve_estado = 1
+            AND ve.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
+            " + (cliente.HasValue ? "AND ve.ve_cliente = @Cliente" : "") + @"
+            ORDER BY ve.ve_codigo DESC;
+        ";
+
+                Console.WriteLine(query);
+
+                var result = await connection.QueryAsync<ReporteVentasPorProveedor>(query, parameters);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error de conexión: {ex.Message}");
+                throw;
+            }
+        }
+
         // Métodos auxiliares privados
         private static string ConstruirWhereClause(ParametrosReporte parametros)
         {

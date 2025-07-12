@@ -6,11 +6,11 @@ const controlador = require('./index.js')
 const auth = require('../../auth/index.js')
 
 
-router.get('/',seguridad(), todos_user)
-router.get('/listar',seguridad(), todos)
-router.get('/ciudad',seguridad(), ciudad)
-router.get('/todos',seguridad(), todosConCiudad)
-router.get('/sucursal-data', seguridad(), sucursalData)
+router.get('/', todos_user)
+router.get('/listar', todos)
+router.get('/ciudad', ciudad)
+router.get('/todos', todosConCiudad)
+router.get('/sucursal-data', sucursalData)
 
 
 async function sucursalData (req, res, next){

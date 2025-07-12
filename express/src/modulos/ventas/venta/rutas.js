@@ -10,9 +10,9 @@ const os = require("os");
 router.post("/agregarVenta", seguridad(), controlador.agregarVenta);
 router.post("/agregar-venta-nuevo", seguridad(), agregarVentaNuevo);
 router.post("/agregar", seguridad(), agregar);
-router.get("/detalles", seguridad(), detalles);
+router.get("/detalles", detalles);
 router.get("/cliente/", seguridad(), cliente);
-router.get("/consultas", seguridad(), consultas);
+router.get("/consultas",  consultas);
 router.post("/modificar", seguridad(), modificar);
 router.post("/resumen", resumen);
 router.post("/resumen-totales", resumenTotales);
@@ -246,6 +246,7 @@ async function consultas(req, res, next) {
       bod.estadoVenta,
       bod.remisiones,
       bod.listarFacturasSinCDC,
+      bod.proveedor,
       page,
       itemsPorPagina
     );

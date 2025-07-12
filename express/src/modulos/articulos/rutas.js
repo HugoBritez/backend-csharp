@@ -80,7 +80,7 @@ router.get(
   anularInventarioAuxiliar
 );
 router.get("/reporte-inventario", seguridad(), reporte_inventario);
-router.get("/buscar-articulos", seguridad(), buscarArticulos);
+router.get("/buscar-articulos", buscarArticulos);
 
 router.get('/pedido', seguridad(), pedidosArticulo)
 
@@ -167,7 +167,8 @@ async function buscarArticulos(req, res, next) {
       req.query.proveedor,
       req.query.cod_interno,
       req.query.lote,
-      req.query.negativo
+      req.query.negativo,
+      req.query.proveedor_id
     );
     respuesta.success(req, res, items, 200);
   } catch (err) {

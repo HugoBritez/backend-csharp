@@ -31,5 +31,6 @@ namespace Api.Repositories.Interfaces
             uint? sucursal
         );
 
+        Task<IEnumerable<ReportePedidosPorProveedor>> GetReportePedidosPorProveedor(string? fechaDesde, string? fechaHasta, uint? proveedor, uint? cliente, uint? nroPedido, uint? vendedor, uint? articulo, uint? moneda, int? estado);
     }
 }

@@ -51,6 +51,9 @@ namespace Api.Models.Entities
         [Column("pro_tipo_doc")]
         public uint TipoDoc { get; set; }
 
+        [Column("pro_key")]
+        public string Key { get; set; } = string.Empty;
+
         public virtual Zona? Zona { get; set; }
     }
 }

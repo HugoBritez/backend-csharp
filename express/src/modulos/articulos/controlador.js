@@ -23,6 +23,8 @@ module.exports = function (dbInyectada) {
     cod_interno,
     lote,
     negativo,
+    proveedor_id,
+
   ) => {
     console.log("articulo_id", articulo_id);
     console.log("codigo_barra", codigo_barra);
@@ -34,6 +36,7 @@ module.exports = function (dbInyectada) {
     console.log("categoria", categoria);
     console.log("ubicacion", ubicacion);
     console.log("proveedor", proveedor);
+    console.log("proveedor_id", proveedor_id);
     console.log("cod_interno", cod_interno);
     console.log("lote", lote);
     console.log("negativo", negativo);
@@ -52,7 +55,7 @@ module.exports = function (dbInyectada) {
          ar.ar_pvr as precio_venta_real,
       `;
 
-    if (articulo_id) {
+    if (articulo_id) {666
       where += ` AND ar.ar_codigo = '${articulo_id}'`;
     } else {
       if (codigo_barra) {
@@ -106,6 +109,12 @@ module.exports = function (dbInyectada) {
     } else if (stock === true || stock === "true") {
       where += `
         AND (al.al_cantidad > 0)
+      `;
+    }
+
+    if (proveedor_id) {
+      where += `
+        AND p.pro_codigo = ${proveedor_id}
       `;
     }
 

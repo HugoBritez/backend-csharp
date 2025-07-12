@@ -81,72 +81,91 @@ namespace Api.Models.ViewModels
         public string Acuerdo { get; set; } = string.Empty;
     }
 
+
+    public class PedidoDetalle
+    {
+        public uint det_codigo { get; set; }
+        public uint art_codigo { get; set; }
+        public string codbarra { get; set; } = string.Empty;
+        public string descripcion { get; set; } = string.Empty;
+        public decimal costo { get; set; }
+        public decimal cantidad { get; set; }
+        public decimal precio { get; set; }
+        public decimal descuento { get; set; }
+        public decimal exentas { get; set; }
+        public decimal cinco { get; set; }
+        public decimal diez { get; set;}
+        public uint codlote { get; set; }
+        public string lote { get; set; } = string.Empty;
+        public bool ar_editar_desc { get; set; }
+        public decimal bonificacion { get; set; }
+        public string largura { get; set; } = string.Empty;
+        public string altura { get; set; } = string.Empty;
+        public string mt2 { get; set; } = string.Empty;
+        public decimal precio_compra { get; set; }
+        public decimal porcentaje_utilidad { get; set; }
+    }
+
     public class PedidoDetalleViewModel
     {
-        [JsonPropertyName("codigo")]
-        public int Codigo { get; set; }
+        [JsonPropertyName("det_codigo")]
+        public int DetCodigo { get; set; }
 
-        [JsonPropertyName("descripcion_articulo")]
-        public string DescripcionArticulo { get; set; } = string.Empty;
+        [JsonPropertyName("art_codigo")]
+        public int ArtCodigo { get; set; }
 
-        [JsonPropertyName("cantidad_vendida")]
-        public decimal CantidadVendida { get; set; }
+        [JsonPropertyName("codbarra")]
+        public string CodBarra { get; set; } = string.Empty;
 
-        [JsonPropertyName("bonificacion")]
-        public string Bonificacion { get; set; } = string.Empty;
+        [JsonPropertyName("descripcion")]
+        public string Descripcion { get; set; } = string.Empty;
 
-        [JsonPropertyName("d_cantidad")]
-        public decimal CantidadFaltante { get; set; }
+        [JsonPropertyName("costo")]
+        public decimal Costo { get; set; }
+
+        [JsonPropertyName("cantidad")]
+        public decimal Cantidad { get; set; }
 
         [JsonPropertyName("precio")]
-        public string Precio { get; set; } = string.Empty;
-
-        [JsonPropertyName("ultimo_precio")]
-        public string UltimoPrecio { get; set; } = string.Empty;
-
-        [JsonPropertyName("porc_costo")]
-        public decimal PorcentajeCosto { get; set; }
-
-        [JsonPropertyName("porcentaje")]
-        public decimal Porcentaje { get; set; }
+        public decimal Precio { get; set; }
 
         [JsonPropertyName("descuento")]
-        public string Descuento { get; set; } = string.Empty;
+        public decimal Descuento { get; set; }
 
         [JsonPropertyName("exentas")]
-        public string Exentas { get; set; } = string.Empty;
+        public decimal Exentas { get; set; }
 
         [JsonPropertyName("cinco")]
-        public string Cinco { get; set; } = string.Empty;
+        public decimal Cinco { get; set; }
 
         [JsonPropertyName("diez")]
-        public string Diez { get; set; } = string.Empty;
+        public decimal Diez { get; set; }
 
-        [JsonPropertyName("dp_lote")]
+        [JsonPropertyName("codlote")]
+        public int CodLote { get; set; }
+
+        [JsonPropertyName("lote")]
         public string Lote { get; set; } = string.Empty;
 
-        [JsonPropertyName("vencimiento")]
-        public string Vencimiento { get; set; } = string.Empty;
+        [JsonPropertyName("ar_editar_desc")]
+        public bool EditarDesc { get; set; }
 
-        [JsonPropertyName("comision")]
-        public decimal Comision { get; set; }
+        [JsonPropertyName("bonificacion")]
+        public decimal Bonificacion { get; set; }
 
-        [JsonPropertyName("actorizado")]
-        public bool Autorizado { get; set; }
+        [JsonPropertyName("largura")]
+        public string Largura { get; set; } = string.Empty;
 
-        [JsonPropertyName("obs")]
-        public string Observaciones { get; set; } = string.Empty;
+        [JsonPropertyName("altura")]
+        public string Altura { get; set; } = string.Empty;
 
-        [JsonPropertyName("cant_stock")]
-        public decimal CantidadStock { get; set; }
+        [JsonPropertyName("mt2")]
+        public string Mt2 { get; set; } = string.Empty;
 
-        [JsonPropertyName("dp_codigolote")]
-        public int CodigoLote { get; set; }
+        [JsonPropertyName("precio_compra")]
+        public decimal? PrecioCompra { get; set; }
 
-        [JsonPropertyName("cant_pendiente")]
-        public decimal CantidadPendiente { get; set; }
-
-        [JsonPropertyName("cantidad_verificada")]
-        public decimal CantidadVerificada { get; set; }
+        [JsonPropertyName("porcentaje_utilidad")]
+        public decimal PorcentajeUtilidad { get; set; }
     }
 }
