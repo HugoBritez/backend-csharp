@@ -177,6 +177,11 @@ builder.Services.AddScoped<IMetaVentaRepository, MetaVentaArticulosRepository>()
 builder.Services.AddScoped<IMetasService, MetasArticulosService>();
 builder.Services.AddScoped<IDetalleComprasVencimientoRepository, DetalleCompraVencimientoRepository>();
 builder.Services.AddScoped<IMetaGeneralRepository, MetaVentaGeneralRepository>();
+builder.Services.AddScoped<IContactosCRMRepository, ContactosCRMRepository>();
+builder.Services.AddScoped<IOportunidadesCRMRepository, OportunidadesCRMRepository>();
+builder.Services.AddScoped<ITareasCRMRepository, TareasCRMRepository>();
+builder.Services.AddScoped<ICRMService, CRMService>();
+
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddEndpointsApiExplorer();

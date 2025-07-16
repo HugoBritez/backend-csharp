@@ -230,6 +230,8 @@ async function uno(req, res, next) {
 
 async function consultas(req, res, next) {
   try {
+
+    console.log(req.query);
     const bod = req.query;
     const page = bod.page || 1;  // Default to page 1
     const itemsPorPagina = bod.itemsPorPagina || 50

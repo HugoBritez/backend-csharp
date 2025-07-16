@@ -29,18 +29,9 @@ namespace Api.Repositories.Base
         protected async Task<IDbConnection> GetConnectionAsync()
         {
             var connection = new MySqlConnection(_connectionString);
-            try
-            {
-                await connection.OpenAsync();
-                _logger?.LogDebug("Conexión Dapper abierta: {ConnectionId}", connection.GetHashCode());
-                return connection;
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Error al abrir conexión Dapper");
-                connection?.Dispose();
-                throw;
-            }
+            await connection.OpenAsync();
+            _logger?.LogDebug("Conexión Dapper abierta: {ConnectionId}", connection.GetHashCode());
+            return connection;
         }
 
         protected IDbConnection GetConnection()
@@ -63,6 +54,23 @@ namespace Api.Repositories.Base
         protected void LogConnectionClosed(IDbConnection connection)
         {
             _logger?.LogDebug("Conexión Dapper cerrada: {ConnectionId}", connection.GetHashCode());
+        }
+
+        protected async Task<T> ExecuteWithConnectionAsync<T>(Func<IDbConnection, Task<T>> operation)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+            _logger?.LogDebug("Conexión Dapper abierta: {ConnectionId}", connection.GetHashCode());
+            
+            try
+            {
+                return await operation(connection);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error en operación Dapper");
+                throw;
+            }
         }
     }
 }

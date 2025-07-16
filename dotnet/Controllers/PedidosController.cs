@@ -58,6 +58,17 @@ namespace Api.Controllers
             return Ok(detalles);
         }
 
+        [HttpGet("detalles-proveedor")]
+        public async Task<ActionResult<IEnumerable<PedidoDetalleViewModel>>> GetDetallesProveedor(
+            [FromQuery] uint codigo,
+            [FromQuery] uint proveedor
+        )
+        {
+            var detalles = await _detallePedidosRepository.GetDetallesPedidoPorProveedor(codigo, proveedor);
+
+            return Ok(detalles);
+        }
+
         [HttpPost]
         public async Task<ActionResult<Pedido>> CrearPedido(
             [FromBody] CrearPedidoDTO crearPedidoDTO

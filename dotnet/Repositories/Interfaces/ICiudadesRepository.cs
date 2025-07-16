@@ -5,5 +5,7 @@ namespace Api.Repositories.Interfaces
     public interface ICiudadesRepository
     {
         Task<IEnumerable<Ciudad>> GetAll(string? Busqueda);
+
+        Task<Ciudad?> GetById(uint id);
     }
 }

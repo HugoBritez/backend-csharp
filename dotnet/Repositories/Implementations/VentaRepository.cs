@@ -566,9 +566,9 @@ namespace Api.Repositories.Implementations
                 IFNULL(IF(ve.ve_factura <> '', ve.ve_factura, vl.ve_factura),'') as Factura,
                 v.op_nombre as Vendedor,
                 o.op_nombre as Operador,
-                ve.ve_total as Total,
+                COALESCE(ventas.TotalImporte, 0) as Total,
                 ve.ve_descuento as Descuento,
-                ve.ve_saldo as Saldo,
+                COALESCE(ventas.TotalImporte, 0) - COALESCE(ventas.MontoCobrado, 0) as Saldo,
                 IF(ve.ve_credito = 1, 'Crédito', 'Contado') as Condicion,
                 IF(ve.ve_estado = 1, 'Activo', 'Anulado') as Estado,
                 COALESCE(ventas.TotalItems, 0) as TotalItems,
@@ -608,9 +608,13 @@ namespace Api.Repositories.Implementations
                         END
                     ) as MontoCobrado
                 FROM detalle_ventas dv2
+                INNER JOIN articulos ar2 ON dv2.deve_articulo = ar2.ar_codigo
+                INNER JOIN articulos_proveedores ap2 ON ar2.ar_codigo = ap2.arprove_articulo
+                INNER JOIN proveedores p2 ON ap2.arprove_prove = p2.pro_codigo
                 INNER JOIN ventas v2 ON dv2.deve_venta = v2.ve_codigo
                 WHERE v2.ve_estado = 1
                 AND v2.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
+                AND p2.pro_codigo = @Proveedor
                 " + (cliente.HasValue ? "AND v2.ve_cliente = @Cliente" : "") + @"
                 GROUP BY dv2.deve_venta
             ) ventas ON ve.ve_codigo = ventas.deve_venta

@@ -19,5 +19,9 @@ namespace Api.Repositories.Implementations
             var zonas = await _context.Zonas.ToListAsync();
             return zonas;
         }
+        public async Task<Zona?> GetById(uint id)
+        {
+            return await _context.Zonas.Where(z => z.Codigo == id).FirstOrDefaultAsync();
+        }
     }
 }

@@ -89,6 +89,64 @@ namespace Api.Repositories.Implementations
       return await connection.QueryAsync<PedidoDetalle>(query, parameters);
     }
 
+    public async Task<IEnumerable<PedidoDetalle>> GetDetallesPedidoPorProveedor(uint codigo, uint proveedor)
+    {
+      using var connection = GetConnection();
+      var parameters = new DynamicParameters();
+      parameters.Add("@Codigo", codigo);
+      parameters.Add("@Proveedor", proveedor);
+
+      var query = @"
+        SELECT
+          dp.dp_codigo AS det_codigo,
+          ar.ar_codigo AS art_codigo,
+          ar.ar_codbarra AS codbarra,
+          ar.ar_descripcion AS descripcion,
+          ar.ar_pcg as costo,
+          dp.dp_cantidad AS cantidad,
+          dp.dp_precio AS precio,
+          dp.dp_descuento AS descuento,
+          dp.dp_exentas AS exentas,
+          dp.dp_cinco AS cinco,
+          dp.dp_diez AS diez,
+          dp.dp_codigolote AS codlote,
+          dp.dp_lote AS lote, 
+          ar.ar_editar_desc,
+          dp.dp_bonif as bonificacion,                
+          '' AS largura,
+          '' AS altura,
+          '' AS mt2,
+          (SELECT dc.dc_precio 
+           FROM detalle_compras dc 
+           INNER JOIN compras c ON dc.dc_compra = c.co_codigo
+           WHERE dc.dc_articulo = dp.dp_articulo 
+             AND c.co_fecha <= p.p_fecha
+           ORDER BY c.co_fecha DESC 
+           LIMIT 1) AS precio_compra,
+          ROUND(
+            ((dp.dp_precio - COALESCE((SELECT dc.dc_precio 
+             FROM detalle_compras dc 
+             INNER JOIN compras c ON dc.dc_compra = c.co_codigo
+             WHERE dc.dc_articulo = dp.dp_articulo 
+               AND c.co_fecha <= p.p_fecha
+             ORDER BY c.co_fecha DESC 
+             LIMIT 1), ar.ar_pcg)) * 100) / dp.dp_precio, 2
+          ) AS porcentaje_utilidad
+        FROM
+          detalle_pedido dp
+          INNER JOIN articulos ar ON ar.ar_codigo = dp.dp_articulo
+          INNER JOIN pedidos p ON p.p_codigo = dp.dp_pedido
+          INNER JOIN articulos_proveedores ap ON ap.arprove_articulo = ar.ar_codigo
+        WHERE
+          dp.dp_pedido = @Codigo
+          AND dp_cantidad > 0
+          AND ap.arprove_prove = @Proveedor
+        ORDER BY
+          dp.dp_codigo";
+
+      return await connection.QueryAsync<PedidoDetalle>(query, parameters);
+    }
+
     public async Task<DetallePedido?> GetById(uint id)
     {
       return await _context.DetallePedido.Where(dp => dp.Codigo == id).FirstOrDefaultAsync();

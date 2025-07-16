@@ -52,6 +52,21 @@ module.exports = function (dbInyectada) {
 
     
     function getCabeceras(fecha_desde, fecha_hasta, sucursal, cliente, vendedor, articulo, moneda, factura, venta, estadoVenta, remisiones, listarFacturasSinCDC, page = 1, itemsPorPagina = 50) {
+        console.log("Parámetros recibidos en getCabeceras:");
+        console.log("fecha_desde:", fecha_desde);
+        console.log("fecha_hasta:", fecha_hasta);
+        console.log("sucursal:", sucursal);
+        console.log("cliente:", cliente);
+        console.log("vendedor:", vendedor);
+        console.log("articulo:", articulo);
+        console.log("moneda:", moneda);
+        console.log("factura:", factura);
+        console.log("venta:", venta);
+        console.log("estadoVenta:", estadoVenta);
+        console.log("remisiones:", remisiones);
+        console.log("listarFacturasSinCDC:", listarFacturasSinCDC);
+        console.log("page:", page);
+        console.log("itemsPorPagina:", itemsPorPagina);
         let where = "1 = 1 ";
         let limitOffset = "";
         // Si hay factura o venta, ignorar otros filtros y no usar paginación
@@ -173,7 +188,9 @@ module.exports = function (dbInyectada) {
                   WHERE
                     ${where}
                   ORDER BY ve.ve_codigo DESC
-${limitOffset} `;
+                  ${limitOffset} `;
+
+                  console.log(where);
         console.log(query);
         return db.sql(query);
     }

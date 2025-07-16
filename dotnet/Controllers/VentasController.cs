@@ -18,13 +18,15 @@ namespace Api.Controllers
         private readonly IVentaRepository _ventaRepository;
         private readonly IMetaVentaRepository _metaVentaRepository;
         private readonly IMetaGeneralRepository _metaGeneralRepository;
+        private readonly IDetalleVentaRepository _detalleVentaRepository;
 
-        public VentasController(IVentaService ventaService, IVentaRepository ventaRepository, IMetaVentaRepository metaVentaRepository, IMetaGeneralRepository metaGeneralRepository)
+        public VentasController(IVentaService ventaService, IVentaRepository ventaRepository, IMetaVentaRepository metaVentaRepository, IMetaGeneralRepository metaGeneralRepository, IDetalleVentaRepository detalleVentaRepository)
         {
             _ventaService = ventaService;
             _ventaRepository = ventaRepository;
             _metaVentaRepository = metaVentaRepository;
             _metaGeneralRepository = metaGeneralRepository;
+            _detalleVentaRepository = detalleVentaRepository;
         }
 
         [HttpGet]
@@ -126,6 +128,16 @@ namespace Api.Controllers
         {
             var reporte = await _ventaRepository.GetReporteVentasPorProveedor(fecha_desde, fecha_hasta, proveedor, cliente);  
             return Ok(reporte);
+        }
+
+        [HttpGet("detalle-proveedor")]
+        public async Task<ActionResult<IEnumerable<DetalleVentaViewModel>>> GetDetalleParaProveedor(
+            [FromQuery] uint proveedor,
+            [FromQuery] uint venta_id
+        )
+        {
+            var detalle = await _detalleVentaRepository.GetDetalleParaProveedor(proveedor, venta_id);
+            return Ok(detalle);
         }
     }
 }

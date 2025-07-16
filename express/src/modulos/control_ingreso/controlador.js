@@ -26,12 +26,13 @@ module.exports = function (dbInyectada) {
         where += ` AND co.co_proveedor = ${nro_proveedor}`;
       }
 
-      // Si no existen fechas, aplicar rango por defecto de una semana
+      // Si no existen fechas, aplicar rango por defecto de tres meses
       if (!fecha_desde && !fecha_hasta) {
         const fechaActual = new Date();
-        const fechaUnaSemanaAtras = new Date(fechaActual.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const fechaTresMesesAtras = new Date();
+        fechaTresMesesAtras.setMonth(fechaTresMesesAtras.getMonth() - 3);
         
-        const fechaDesdeFormateada = fechaUnaSemanaAtras.toISOString().split('T')[0];
+        const fechaDesdeFormateada = fechaTresMesesAtras.toISOString().split('T')[0];
         const fechaHastaFormateada = fechaActual.toISOString().split('T')[0];
         
         where += ` AND co.co_fecha BETWEEN '${fechaDesdeFormateada}' AND '${fechaHastaFormateada}'`;

@@ -29,5 +29,10 @@ namespace Api.Repositories.Implementations
             return await query.ToListAsync();
         }
 
+        public async Task<Departamento?> GetById(uint id)
+        {
+            return await _context.Departamentos.Where(dep => dep.Id == id).FirstOrDefaultAsync();
+        }
+
     }
 }

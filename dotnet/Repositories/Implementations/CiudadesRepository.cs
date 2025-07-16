@@ -27,5 +27,10 @@ namespace Api.Repositories.Implementations
                 return ciudades;
             }
         }
+
+        public async Task<Ciudad?> GetById(uint id)
+        {
+            return await _context.Ciudades.Where(ciu => ciu.Id == id).FirstOrDefaultAsync();
+        }
     }
 }

@@ -305,7 +305,14 @@ namespace Api.Repositories.Implementations
                         IFNULL(vp.ve_factura, '') as Factura,
                         ope.op_nombre as Vendedor,
                         op.op_nombre as Operador,
-                        FORMAT(ROUND(SUM(dp.dp_cantidad * (dp.dp_precio - dp.dp_descuento)), 0), 0) as Total,
+                        FORMAT(ROUND(SUM(CASE 
+                            WHEN ar.ar_codigo IN (
+                                SELECT arprove_articulo 
+                                FROM articulos_proveedores 
+                                WHERE arprove_prove = @Proveedor
+                            ) THEN dp.dp_cantidad * (dp.dp_precio - dp.dp_descuento)
+                            ELSE 0 
+                        END), 0), 0) as Total,
                         IF(p.p_credito = 1, 'Crédito', 'Contado') as Condicion,
                         IF(p.p_estado = 1, 'Pendiente', IF(p.p_estado = 2, 'Facturado', 'Todos')) as Estado,
                         p.p_estado as EstadoNum,
@@ -330,11 +337,12 @@ namespace Api.Repositories.Implementations
                     LEFT JOIN clientes cli ON p.p_cliente = cli.cli_codigo
                     LEFT JOIN monedas m ON p.p_moneda = m.mo_codigo
                     LEFT JOIN operadores op ON p.p_operador = op.op_codigo
-                    LEFT JOIN operadores ope ON p.p_vendedor = ope.op_codigo
+                    LEFT JOIN operadores ope ON p.p_vendedor = ope.op_nombre
                     LEFT JOIN area a ON p.p_area = a.a_codigo
                     LEFT JOIN depositos dep ON p.p_deposito = dep.dep_codigo
                     LEFT JOIN ventas vp ON p.p_codigo = vp.ve_pedido
                     LEFT JOIN detalle_pedido dp ON p.p_codigo = dp.dp_pedido
+                    LEFT JOIN articulos ar ON dp.dp_articulo = ar.ar_codigo
                     INNER JOIN (
                         SELECT DISTINCT dp2.dp_pedido
                         FROM detalle_pedido dp2
@@ -350,8 +358,12 @@ namespace Api.Repositories.Implementations
                             SUM(dp3.dp_cantidad * dp3.dp_precio) as TotalImporte
                         FROM detalle_pedido dp3
                         INNER JOIN pedidos p3 ON dp3.dp_pedido = p3.p_codigo
+                        INNER JOIN articulos ar3 ON dp3.dp_articulo = ar3.ar_codigo
+                        INNER JOIN articulos_proveedores ap3 ON ar3.ar_codigo = ap3.arprove_articulo
+                        INNER JOIN proveedores pr3 ON ap3.arprove_prove = pr3.pro_codigo
                         WHERE p3.p_estado IN (1, 2)
                         AND p3.p_fecha BETWEEN @FechaDesde AND @FechaHasta
+                        AND pr3.pro_codigo = @Proveedor
                         " + (cliente.HasValue ? "AND p3.p_cliente = @Cliente" : "") + @"
                         " + (nroPedido.HasValue ? "AND p3.p_codigo = @NroPedido" : "") + @"
                         " + (vendedor.HasValue ? "AND p3.p_vendedor = @Vendedor" : "") + @"

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Api.Models.Entities;
+using Api.Model.Entities;
 
 namespace Api.Data
 {
@@ -69,6 +70,13 @@ namespace Api.Data
         public DbSet<MetaVentaArticulo> MetaVentaArticulos { get; set; }
         public DbSet<DetalleCompraVencimiento> DetalleCompraVencimiento { get; set; }
         public DbSet<MetasVentaGeneral> MetasVentaGeneral { get; set; }
+
+        public DbSet<OportunidadCRM> Oportunidades { get; set; }
+        public DbSet<TareaCRM> Tareas { get; set; }
+        public DbSet<TipoTareaCRM> TipoTareas { get; set; }
+        public DbSet<EstadoCRM> Estados { get; set; }
+        public DbSet<ContactoCRM> ContactosCRM { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
