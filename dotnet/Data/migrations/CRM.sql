@@ -31,7 +31,6 @@ CREATE INDEX idx_contactos_crm_zona ON contactos_crm(co_zona);
 CREATE INDEX idx_contactos_crm_estado ON contactos_crm(co_estado);
 CREATE INDEX idx_contactos_crm_fecha ON contactos_crm(co_fecha_contacto);
 
-
 CREATE TABLE estados_crm (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     descripcion VARCHAR(255) NULL
@@ -104,7 +103,6 @@ ADD CONSTRAINT fk_tareas_tipo_tarea
 FOREIGN KEY (ta_tipo_tarea) REFERENCES tipo_tarea_crm(tipo_codigo);
 
 
-
 -- Agregar la clave foránea para relacionar tareas_crm con tipo_tarea_crm
 ALTER TABLE tareas_crm 
 ADD CONSTRAINT fk_tareas_tipo_tarea 
@@ -112,3 +110,29 @@ FOREIGN KEY (ta_tipo_tarea) REFERENCES tipo_tarea_crm(tipo_codigo);
 
 -- Agregar un índice adicional para optimizar las consultas por tipo de tarea
 CREATE INDEX idx_tareas_crm_tipo_tarea_fk ON tareas_crm(ta_tipo_tarea);
+
+
+-- Seeder para estados del CRM
+-- Ejecutar este script si la tabla estados_crm está vacía
+
+INSERT IGNORE INTO estados_crm (id, descripcion) VALUES
+(1, 'En planeación'),
+(2, 'En Negociación'),
+(3, 'Lograda'),
+(4, 'Fallada');
+
+
+INSERT INTO tipo_tarea_crm (tipo_codigo, tipo_descripcion, tipo_estado) VALUES
+(1, 'Llamada', 1),
+(2, 'Reunión', 1),
+(3, 'Email', 1),
+(4, 'Seguimiento', 1),
+(5, 'Propuesta', 1),
+(6, 'WhatsApp', 1),
+(7, 'Visita técnica', 1),
+(8, 'Presentación', 1),
+(9, 'Negociación', 1),
+(10, 'Cierre de venta', 1),
+(11, 'Capacitación', 1),
+(12, 'Soporte técnico', 1);
+

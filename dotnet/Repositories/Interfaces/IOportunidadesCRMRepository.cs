@@ -1,4 +1,5 @@
 using Api.Models.Entities;
+using Api.Models.ViewModels;
 
 namespace Api.Repositories.Interfaces
 {
@@ -15,6 +16,16 @@ namespace Api.Repositories.Interfaces
         Task<IEnumerable<OportunidadCRM>> GetOportunidadesByCliente(uint cliente);
 
         Task<IEnumerable<OportunidadCRM>> GetOportunidadesByOperador(uint operador);
+
+        Task<OportunidadViewModel?> GetOportunidadCompletaById(uint id);
+
+        Task<IEnumerable<OportunidadViewModel>> GetOportunidadesCompletas();
+
+        Task<IEnumerable<OportunidadViewModel>> GetOportunidadesCompletasByCliente(uint cliente);
+
+        Task<IEnumerable<OportunidadViewModel>> GetOportunidadesCompletasByOperador(uint operador);
+
+        
         
     }
 }

@@ -74,7 +74,7 @@ namespace Api.Data
         public DbSet<OportunidadCRM> Oportunidades { get; set; }
         public DbSet<TareaCRM> Tareas { get; set; }
         public DbSet<TipoTareaCRM> TipoTareas { get; set; }
-        public DbSet<EstadoCRM> Estados { get; set; }
+        public DbSet<EstadoCRM> EstadoCRM { get; set; }
         public DbSet<ContactoCRM> ContactosCRM { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

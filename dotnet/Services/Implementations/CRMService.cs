@@ -1,3 +1,4 @@
+using Api.Model.Entities;
 using Api.Models.Entities;
 using Api.Models.ViewModels;
 using Api.Repositories.Interfaces;
@@ -129,12 +130,12 @@ namespace Api.Services.Implementations
             }
         }
 
-        public async Task<OportunidadCRM?> GetOportunidadById(uint id)
+        public async Task<OportunidadViewModel?> GetOportunidadById(uint id)
         {
             try
             {
                 _logger.LogDebug("Buscando oportunidad con ID: {Id}", id);
-                return await _oportunidadesCRMRepository.GetOportunidadById(id);
+                return await _oportunidadesCRMRepository.GetOportunidadCompletaById(id);
             }
             catch (Exception ex)
             {
@@ -143,12 +144,12 @@ namespace Api.Services.Implementations
             }
         }
 
-        public async Task<IEnumerable<OportunidadCRM>> GetOportunidades()
+        public async Task<IEnumerable<OportunidadViewModel>> GetOportunidades()
         {
             try
             {
                 _logger.LogDebug("Obteniendo lista de oportunidades");
-                return await _oportunidadesCRMRepository.GetOportunidades();
+                return await _oportunidadesCRMRepository.GetOportunidadesCompletas();
             }
             catch (Exception ex)
             {
@@ -157,12 +158,12 @@ namespace Api.Services.Implementations
             }
         }
 
-        public async Task<IEnumerable<OportunidadCRM>> GetOportunidadesByCliente(uint cliente)
+        public async Task<IEnumerable<OportunidadViewModel>> GetOportunidadesByCliente(uint cliente)
         {
             try
             {
                 _logger.LogDebug("Obteniendo oportunidades para cliente: {Cliente}", cliente);
-                return await _oportunidadesCRMRepository.GetOportunidadesByCliente(cliente);
+                return await _oportunidadesCRMRepository.GetOportunidadesCompletasByCliente(cliente);
             }
             catch (Exception ex)
             {
@@ -171,12 +172,12 @@ namespace Api.Services.Implementations
             }
         }
 
-        public async Task<IEnumerable<OportunidadCRM>> GetOportunidadesByOperador(uint operador)
+        public async Task<IEnumerable<OportunidadViewModel>> GetOportunidadesByOperador(uint operador)
         {
             try
             {
                 _logger.LogDebug("Obteniendo oportunidades para operador: {Operador}", operador);
-                return await _oportunidadesCRMRepository.GetOportunidadesByOperador(operador);
+                return await _oportunidadesCRMRepository.GetOportunidadesCompletasByOperador(operador);
             }
             catch (Exception ex)
             {
@@ -301,6 +302,22 @@ namespace Api.Services.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al obtener tareas para contacto: {Contacto}", contacto);
+                throw;
+            }
+        }
+        #endregion
+
+        #region Tipos de Tareas
+        public async Task<IEnumerable<TipoTareaCRM>> GetTiposTareas()
+        {
+            try
+            {
+                _logger.LogDebug("Obteniendo tipos de tareas");
+                return await _tareasCRMRepository.GetTiposTareas();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener tipos de tareas");
                 throw;
             }
         }

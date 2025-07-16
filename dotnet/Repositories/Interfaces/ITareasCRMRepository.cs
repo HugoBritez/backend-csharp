@@ -1,3 +1,4 @@
+using Api.Model.Entities;
 using Api.Models.Entities;
 
 namespace Api.Repositories.Interfaces
@@ -15,5 +16,7 @@ namespace Api.Repositories.Interfaces
         Task<IEnumerable<TareaCRM>> GetTareasByOportunidad(uint oportunidad);
 
         Task<IEnumerable<TareaCRM>> GetTareasByContacto(uint contacto);
+
+        Task<IEnumerable<TipoTareaCRM>> GetTiposTareas();
     }
 }

@@ -1,3 +1,4 @@
+using Api.Model.Entities;
 using Api.Models.Entities;
 using Api.Models.ViewModels;
 
@@ -17,13 +18,13 @@ namespace Api.Services.Interfaces
 
         Task<OportunidadCRM> ActualizarOportunidad(OportunidadCRM oportunidad);
 
-        Task<OportunidadCRM?> GetOportunidadById(uint id);
+        Task<OportunidadViewModel?> GetOportunidadById(uint id);
 
-        Task<IEnumerable<OportunidadCRM>> GetOportunidades();
+        Task<IEnumerable<OportunidadViewModel>> GetOportunidades();
 
-        Task<IEnumerable<OportunidadCRM>> GetOportunidadesByCliente(uint cliente);
+        Task<IEnumerable<OportunidadViewModel>> GetOportunidadesByCliente(uint cliente);
 
-        Task<IEnumerable<OportunidadCRM>> GetOportunidadesByOperador(uint operador);
+        Task<IEnumerable<OportunidadViewModel>> GetOportunidadesByOperador(uint operador);
 
         Task<TareaCRM> CrearTarea(TareaCRM tarea);
 
@@ -38,5 +39,7 @@ namespace Api.Services.Interfaces
         Task<IEnumerable<TareaCRM>> GetTareasByOperador(uint operador);
 
         Task<IEnumerable<TareaCRM>> GetTareasByContacto(uint contacto);
+
+        Task<IEnumerable<TipoTareaCRM>> GetTiposTareas();
     }
 }

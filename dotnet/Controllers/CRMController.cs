@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Api.Services.Interfaces;
 using Api.Models.Entities;
 using Api.Models.ViewModels;
+using Api.Model.Entities;
 
 namespace Api.Controllers
 {
@@ -50,14 +51,14 @@ namespace Api.Controllers
 
         // Endpoints para Oportunidades
         [HttpGet("oportunidades")]
-        public async Task<ActionResult<IEnumerable<OportunidadCRM>>> GetOportunidades()
+        public async Task<ActionResult<IEnumerable<OportunidadViewModel>>> GetOportunidades()
         {
             var oportunidades = await _crmService.GetOportunidades();
             return Ok(oportunidades);
         }
 
         [HttpGet("oportunidades/{id}")]
-        public async Task<ActionResult<OportunidadCRM>> GetOportunidadById(uint id)
+        public async Task<ActionResult<OportunidadViewModel>> GetOportunidadById(uint id)
         {
             var oportunidad = await _crmService.GetOportunidadById(id);
             if (oportunidad == null)
@@ -66,14 +67,14 @@ namespace Api.Controllers
         }
 
         [HttpGet("oportunidades/cliente/{cliente}")]
-        public async Task<ActionResult<IEnumerable<OportunidadCRM>>> GetOportunidadesByCliente(uint cliente)
+        public async Task<ActionResult<IEnumerable<OportunidadViewModel>>> GetOportunidadesByCliente(uint cliente)
         {
             var oportunidades = await _crmService.GetOportunidadesByCliente(cliente);
             return Ok(oportunidades);
         }
 
         [HttpGet("oportunidades/operador/{operador}")]
-        public async Task<ActionResult<IEnumerable<OportunidadCRM>>> GetOportunidadesByOperador(uint operador)
+        public async Task<ActionResult<IEnumerable<OportunidadViewModel>>> GetOportunidadesByOperador(uint operador)
         {
             var oportunidades = await _crmService.GetOportunidadesByOperador(operador);
             return Ok(oportunidades);
@@ -143,6 +144,13 @@ namespace Api.Controllers
         {
             var tareaActualizada = await _crmService.ActualizarTarea(tarea);
             return Ok(tareaActualizada);
+        }
+
+        [HttpGet("tipos-tareas")]
+        public async Task<ActionResult<IEnumerable<TipoTareaCRM>>> GetTiposTareas()
+        {
+            var tiposTareas = await _crmService.GetTiposTareas();
+            return Ok(tiposTareas);
         }
     }
 }

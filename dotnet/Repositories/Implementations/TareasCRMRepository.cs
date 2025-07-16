@@ -1,4 +1,5 @@
 using Api.Data;
+using Api.Model.Entities;
 using Api.Models.Entities;
 using Api.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -46,6 +47,11 @@ namespace Api.Repositories.Implementations
                     .Select(o => o.Codigo)
                     .Contains(t.Oportunidad))
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<TipoTareaCRM>> GetTiposTareas()
+        {
+            return await _context.TipoTareas.Where(t => t.Estado == 1).ToListAsync();
         }
     }
 }
