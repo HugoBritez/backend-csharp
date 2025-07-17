@@ -112,14 +112,21 @@ FOREIGN KEY (ta_tipo_tarea) REFERENCES tipo_tarea_crm(tipo_codigo);
 CREATE INDEX idx_tareas_crm_tipo_tarea_fk ON tareas_crm(ta_tipo_tarea);
 
 
+CREATE TABLE crm_columna_kanban (
+    ck_codigo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ck_nombre VARCHAR(255) NULL,
+    ck_estado INT UNSIGNED NOT NULL DEFAULT 1
+);
+
 -- Seeder para estados del CRM
 -- Ejecutar este script si la tabla estados_crm está vacía
 
 INSERT IGNORE INTO estados_crm (id, descripcion) VALUES
 (1, 'En planeación'),
 (2, 'En Negociación'),
-(3, 'Lograda'),
-(4, 'Fallada');
+(3, 'Concluidos'),
+(4, 'Rechazada');
+
 
 
 INSERT INTO tipo_tarea_crm (tipo_codigo, tipo_descripcion, tipo_estado) VALUES

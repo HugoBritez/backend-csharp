@@ -181,6 +181,7 @@ builder.Services.AddScoped<IContactosCRMRepository, ContactosCRMRepository>();
 builder.Services.AddScoped<IOportunidadesCRMRepository, OportunidadesCRMRepository>();
 builder.Services.AddScoped<ITareasCRMRepository, TareasCRMRepository>();
 builder.Services.AddScoped<ICRMService, CRMService>();
+builder.Services.AddScoped<IEstadoCRMRepository, EstadoCRMRepository>();
 
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

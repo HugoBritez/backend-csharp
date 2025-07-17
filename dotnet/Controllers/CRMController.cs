@@ -3,6 +3,7 @@ using Api.Services.Interfaces;
 using Api.Models.Entities;
 using Api.Models.ViewModels;
 using Api.Model.Entities;
+using Api.Repositories.Interfaces;
 
 namespace Api.Controllers
 {
@@ -12,10 +13,12 @@ namespace Api.Controllers
     public class CRMController : ControllerBase
     {
         private readonly ICRMService _crmService;
+        private readonly IEstadoCRMRepository _estadoCRMRepository;
 
-        public CRMController(ICRMService crmService)
+        public CRMController(ICRMService crmService, IEstadoCRMRepository estadoCRMRepository)
         {
             _crmService = crmService;
+            _estadoCRMRepository = estadoCRMRepository;
         }
 
         // Endpoints para Contactos
@@ -154,6 +157,20 @@ namespace Api.Controllers
         {
             var tiposTareas = await _crmService.GetTiposTareas();
             return Ok(tiposTareas);
+        }
+
+        [HttpGet("estados")]
+        public async Task<ActionResult<IEnumerable<EstadoCRM>>> GetEstados()
+        {
+            var estados = await _estadoCRMRepository.GetEstados();
+            return Ok(estados);
+        }
+
+        [HttpPut("estados/{codigo}")]
+        public async Task<ActionResult<EstadoCRM>> UpdateDescripcion(uint codigo, [FromBody] string descripcion)
+        {
+            var estado = await _estadoCRMRepository.UpdateDescripcion(codigo, descripcion);
+            return Ok(estado);
         }
     }
 }
