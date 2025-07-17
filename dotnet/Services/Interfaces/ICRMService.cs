@@ -20,7 +20,7 @@ namespace Api.Services.Interfaces
 
         Task<OportunidadViewModel?> GetOportunidadById(uint id);
 
-        Task<IEnumerable<OportunidadViewModel>> GetOportunidades();
+        Task<IEnumerable<OportunidadViewModel>> GetOportunidades(DateTime? fechaInicio = null, DateTime? fechaFin = null);
 
         Task<IEnumerable<OportunidadViewModel>> GetOportunidadesByCliente(uint cliente);
 

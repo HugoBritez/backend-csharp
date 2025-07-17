@@ -107,7 +107,7 @@ namespace Api.Repositories.Implementations
             return await query.FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<OportunidadViewModel>> GetOportunidadesCompletas()
+        public async Task<IEnumerable<OportunidadViewModel>> GetOportunidadesCompletas(DateTime? fechaInicio = null, DateTime? fechaFin = null)
         {
             var query = from oportunidad in _context.Oportunidades
                         join cliente in _context.ContactosCRM on oportunidad.Cliente equals cliente.Codigo
@@ -129,6 +129,17 @@ namespace Api.Repositories.Implementations
                             OperadorNombre = operador.OpNombre,
                             EstadoDescripcion = estado.Descripcion
                         };
+
+            // Aplicar filtros de fecha si están especificados
+            if (fechaInicio.HasValue)
+            {
+                query = query.Where(o => o.FechaInicio >= fechaInicio.Value);
+            }
+
+            if (fechaFin.HasValue)
+            {
+                query = query.Where(o => o.FechaInicio <= fechaFin.Value);
+            }
 
             return await query.ToListAsync();
         }

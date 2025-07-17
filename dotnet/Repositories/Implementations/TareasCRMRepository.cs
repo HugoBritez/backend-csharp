@@ -49,6 +49,16 @@ namespace Api.Repositories.Implementations
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<TareaCRM>> GetTareasByOperador(uint operador)
+        {
+            return await _context.Tareas
+                .Where(t => _context.Oportunidades
+                    .Where(o => o.Operador == operador)
+                    .Select(o => o.Codigo)
+                    .Contains(t.Oportunidad))
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<TipoTareaCRM>> GetTiposTareas()
         {
             return await _context.TipoTareas.Where(t => t.Estado == 1).ToListAsync();

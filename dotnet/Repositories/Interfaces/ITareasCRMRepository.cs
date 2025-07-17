@@ -17,6 +17,8 @@ namespace Api.Repositories.Interfaces
 
         Task<IEnumerable<TareaCRM>> GetTareasByContacto(uint contacto);
 
+        Task<IEnumerable<TareaCRM>> GetTareasByOperador(uint operador);
+
         Task<IEnumerable<TipoTareaCRM>> GetTiposTareas();
     }
 }

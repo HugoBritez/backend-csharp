@@ -51,9 +51,12 @@ namespace Api.Controllers
 
         // Endpoints para Oportunidades
         [HttpGet("oportunidades")]
-        public async Task<ActionResult<IEnumerable<OportunidadViewModel>>> GetOportunidades()
+        public async Task<ActionResult<IEnumerable<OportunidadViewModel>>> GetOportunidades(
+            [FromQuery(Name = "fechaDesde")] DateTime? fechaInicio,
+            [FromQuery(Name = "fechaHasta")] DateTime? fechaFin
+        )
         {
-            var oportunidades = await _crmService.GetOportunidades();
+            var oportunidades = await _crmService.GetOportunidades(fechaInicio, fechaFin);
             return Ok(oportunidades);
         }
 

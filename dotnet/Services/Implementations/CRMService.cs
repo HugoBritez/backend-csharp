@@ -144,12 +144,13 @@ namespace Api.Services.Implementations
             }
         }
 
-        public async Task<IEnumerable<OportunidadViewModel>> GetOportunidades()
+        public async Task<IEnumerable<OportunidadViewModel>> GetOportunidades(DateTime? fechaInicio = null, DateTime? fechaFin = null)
         {
             try
             {
-                _logger.LogDebug("Obteniendo lista de oportunidades");
-                return await _oportunidadesCRMRepository.GetOportunidadesCompletas();
+                _logger.LogDebug("Obteniendo lista de oportunidades con filtros: fechaInicio={FechaInicio}, fechaFin={FechaFin}", 
+                    fechaInicio?.ToString("yyyy-MM-dd"), fechaFin?.ToString("yyyy-MM-dd"));
+                return await _oportunidadesCRMRepository.GetOportunidadesCompletas(fechaInicio, fechaFin);
             }
             catch (Exception ex)
             {
@@ -267,23 +268,7 @@ namespace Api.Services.Implementations
             try
             {
                 _logger.LogDebug("Obteniendo tareas para operador: {Operador}", operador);
-                
-                // Optimización: Obtener oportunidades y tareas en paralelo
-                var oportunidades = await _oportunidadesCRMRepository.GetOportunidadesByOperador(operador);
-                var tareas = new List<TareaCRM>();
-                
-                // Usar Task.WhenAll para ejecutar las consultas en paralelo
-                var tareasTasks = oportunidades.Select(async oportunidad => 
-                    await _tareasCRMRepository.GetTareasByOportunidad(oportunidad.Codigo));
-                
-                var tareasResults = await Task.WhenAll(tareasTasks);
-                
-                foreach (var tareasOportunidad in tareasResults)
-                {
-                    tareas.AddRange(tareasOportunidad);
-                }
-                
-                return tareas;
+                return await _tareasCRMRepository.GetTareasByOperador(operador);
             }
             catch (Exception ex)
             {

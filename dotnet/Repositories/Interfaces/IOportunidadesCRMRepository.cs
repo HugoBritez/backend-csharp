@@ -19,7 +19,7 @@ namespace Api.Repositories.Interfaces
 
         Task<OportunidadViewModel?> GetOportunidadCompletaById(uint id);
 
-        Task<IEnumerable<OportunidadViewModel>> GetOportunidadesCompletas();
+        Task<IEnumerable<OportunidadViewModel>> GetOportunidadesCompletas(DateTime? fechaInicio = null, DateTime? fechaFin = null);
 
         Task<IEnumerable<OportunidadViewModel>> GetOportunidadesCompletasByCliente(uint cliente);
 
