@@ -79,11 +79,36 @@ CREATE TABLE tareas_crm (
     FOREIGN KEY (ta_oportunidad) REFERENCES oportunidades_crm(op_codigo)
 );
 
+
+
+
 -- Índices para mejorar el rendimiento
 CREATE INDEX idx_tareas_crm_oportunidad ON tareas_crm(ta_oportunidad);
 CREATE INDEX idx_tareas_crm_fecha ON tareas_crm(ta_fecha);
 CREATE INDEX idx_tareas_crm_estado ON tareas_crm(ta_estado);
 CREATE INDEX idx_tareas_crm_tipo_tarea ON tareas_crm(ta_tipo_tarea);
+
+CREATE TABLE agendamientos_crm (
+    ag_codigo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ag_fecha_inicio DATETIME NOT NULL,
+    ag_fecha_agendamiento DATETIME NOT NULL,
+    ag_hora_agendamiento TIME NOT NULL,
+    ag_titulo VARCHAR(255) NULL,
+    ag_descripcion TEXT NULL,
+    ag_doctor INT UNSIGNED NOT NULL,
+    ag_paciente INT UNSIGNED NOT NULL,
+    ag_cliente INT UNSIGNED NOT NULL,
+    ag_operador INT UNSIGNED NOT NULL,
+    ag_estado INT NOT NULL DEFAULT 1,
+    
+    FOREIGN KEY (ag_operador) REFERENCES operadores(op_codigo),
+    FOREIGN KEY (ag_doctor) REFERENCES doctores(doc_codigo),
+    FOREIGN KEY (ag_paciente) REFERENCES pacientes(pac_codigo)
+);
+
+CREATE INDEX idx_agendamientos_crm_operador ON agendamientos_crm(ag_operador);
+CREATE INDEX idx_agendamientos_crm_doctor ON agendamientos_crm(ag_doctor);
+CREATE INDEX idx_agendamientos_crm_paciente ON agendamientos_crm(ag_paciente);
 
 
 CREATE TABLE tipo_tarea_crm (
@@ -116,6 +141,23 @@ CREATE TABLE crm_columna_kanban (
     ck_codigo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ck_nombre VARCHAR(255) NULL,
     ck_estado INT UNSIGNED NOT NULL DEFAULT 1
+);
+
+CREATE TABLE recordatorios_crm (
+    re_codigo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    re_titulo VARCHAR(255) NULL,
+    re_descripcion TEXT NULL,
+    re_fecha DATETIME NOT NULL,
+    re_fecha_limite DATETIME NULL,
+    re_hora TIME NULL,
+    re_operador INT UNSIGNED NOT NULL,
+    re_cliente INT UNSIGNED DEFAULT NULL,
+    re_estado INT NOT NULL DEFAULT 1,
+    re_tipo_recordatorio INT UNSIGNED NOT NULL
+
+
+    FOREIGN KEY (re_operador) REFERENCES operadores(op_codigo),
+    FOREIGN KEY (re_tipo_recordatorio) REFERENCES tipo_tarea_crm(tipo_codigo)
 );
 
 -- Seeder para estados del CRM

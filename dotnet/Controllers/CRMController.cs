@@ -4,6 +4,7 @@ using Api.Models.Entities;
 using Api.Models.ViewModels;
 using Api.Model.Entities;
 using Api.Repositories.Interfaces;
+using Api.Repositories.Implementations;
 
 namespace Api.Controllers
 {
@@ -14,11 +15,15 @@ namespace Api.Controllers
     {
         private readonly ICRMService _crmService;
         private readonly IEstadoCRMRepository _estadoCRMRepository;
+        private readonly IAgendamientoCRMRepository _agendamientoCRMRepository;
+        private readonly IRecordatorioCRMRepository _recordatorioCRMRepository;
 
-        public CRMController(ICRMService crmService, IEstadoCRMRepository estadoCRMRepository)
+        public CRMController(ICRMService crmService, IEstadoCRMRepository estadoCRMRepository, IAgendamientoCRMRepository agendamientoCRMRepository, IRecordatorioCRMRepository recordatorioCRMRepository)
         {
             _crmService = crmService;
             _estadoCRMRepository = estadoCRMRepository;
+            _agendamientoCRMRepository = agendamientoCRMRepository;
+            _recordatorioCRMRepository = recordatorioCRMRepository;
         }
 
         // Endpoints para Contactos
@@ -171,6 +176,82 @@ namespace Api.Controllers
         {
             var estado = await _estadoCRMRepository.UpdateDescripcion(codigo, descripcion);
             return Ok(estado);
+        }
+
+        // Endpoints para Agendamientos
+        [HttpGet("agendamientos")]
+        public async Task<ActionResult<IEnumerable<AgendamientoCRM>>> GetAgendamientos()
+        {
+            var agendamientos = await _agendamientoCRMRepository.GetAll();
+            return Ok(agendamientos);
+        }
+
+        [HttpGet("agendamientos/operador/{operador}")]
+        public async Task<ActionResult<IEnumerable<AgendamientoCRM>>> GetAgendamientosByOperador(uint operador)
+        {
+            var agendamientos = await _agendamientoCRMRepository.GetByOperador(operador);
+            return Ok(agendamientos);
+        }
+
+        [HttpGet("agendamientos/doctor/{doctor}")]
+        public async Task<ActionResult<IEnumerable<AgendamientoCRM>>> GetAgendamientosByDoctor(uint doctor)
+        {
+            var agendamientos = await _agendamientoCRMRepository.GetByDoctor(doctor);
+            return Ok(agendamientos);
+        }
+
+        [HttpPost("agendamientos")]
+        public async Task<ActionResult<AgendamientoCRM>> CreateAgendamiento([FromBody] AgendamientoCRM agendamiento)
+        {
+            var nuevoAgendamiento = await _agendamientoCRMRepository.Create(agendamiento);
+            return CreatedAtAction(nameof(GetAgendamientoById), new { id = nuevoAgendamiento.Codigo }, nuevoAgendamiento);
+        }
+
+        [HttpPut("agendamientos")]
+        public async Task<ActionResult<AgendamientoCRM>> UpdateAgendamiento([FromBody] AgendamientoCRM agendamiento)
+        {
+            var agendamientoActualizado = await _agendamientoCRMRepository.Update(agendamiento);
+            return Ok(agendamientoActualizado);
+        }
+
+        [HttpGet("agendamientos/{id}")]
+        public async Task<ActionResult<AgendamientoCRM>> GetAgendamientoById(uint id)
+        {
+            var agendamiento = await _agendamientoCRMRepository.GetById(id);
+            return Ok(agendamiento);
+        }
+
+
+        // Endpoints para RECORDATORIOS
+
+        [HttpGet("recordatorios")]
+        public async Task<ActionResult<IEnumerable<RecordatorioCRMViewModel>>> GetRecordatorios()
+        {
+            var recordatorios = await _recordatorioCRMRepository.GetAll();
+            return Ok(recordatorios);
+        }
+
+        [HttpGet("recordatorios/{id}")]
+        public async Task<ActionResult<RecordatorioCRMViewModel>> GetRecordatorioById(uint id)
+        {
+            var recordatorio = await _recordatorioCRMRepository.GetById(id);
+            if (recordatorio == null)
+                return NotFound();
+            return Ok(recordatorio);
+        }
+
+        [HttpPost("recordatorios")]
+        public async Task<ActionResult<RecordatorioCRM>> CreateRecordatorio([FromBody] RecordatorioCRM recordatorio)
+        {
+            var nuevoRecordatorio = await _recordatorioCRMRepository.Create(recordatorio);
+            return CreatedAtAction(nameof(GetRecordatorioById), new { id = nuevoRecordatorio.Codigo }, nuevoRecordatorio);
+        }
+
+        [HttpPut("recordatorios")]
+        public async Task<ActionResult<RecordatorioCRM>> UpdateRecordatorio([FromBody] RecordatorioCRM recordatorio)
+        {
+            var recordatorioActualizado = await _recordatorioCRMRepository.Update(recordatorio);
+            return Ok(recordatorioActualizado);
         }
     }
 }

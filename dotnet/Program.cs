@@ -182,7 +182,10 @@ builder.Services.AddScoped<IOportunidadesCRMRepository, OportunidadesCRMReposito
 builder.Services.AddScoped<ITareasCRMRepository, TareasCRMRepository>();
 builder.Services.AddScoped<ICRMService, CRMService>();
 builder.Services.AddScoped<IEstadoCRMRepository, EstadoCRMRepository>();
-
+builder.Services.AddScoped<IAgendamientoCRMRepository, AgendamientoCRMRepository>();
+builder.Services.AddScoped<IDoctoresRepository, DoctoresRepository>();
+builder.Services.AddScoped<IPacientesRepository, PacientesRepository>();
+builder.Services.AddScoped<IRecordatorioCRMRepository, RecordatorioCRMRepository>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddEndpointsApiExplorer();
