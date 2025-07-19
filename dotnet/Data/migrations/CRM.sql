@@ -39,6 +39,7 @@ CREATE TABLE estados_crm (
 -- Índice para mejorar el rendimiento en búsquedas por descripción
 CREATE INDEX idx_estados_crm_descripcion ON estados_crm(descripcion);
 
+
 CREATE TABLE oportunidades_crm (
     op_codigo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     op_cliente INT UNSIGNED NOT NULL,
@@ -151,7 +152,6 @@ CREATE TABLE recordatorios_crm (
     re_cliente INT UNSIGNED DEFAULT NULL,
     re_estado INT NOT NULL DEFAULT 1,
     re_tipo_recordatorio INT UNSIGNED NOT NULL
-
 
     FOREIGN KEY (re_operador) REFERENCES operadores(op_codigo),
     FOREIGN KEY (re_tipo_recordatorio) REFERENCES tipo_tarea_crm(tipo_codigo)
