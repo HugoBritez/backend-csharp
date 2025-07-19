@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices.Marshalling;
 using Api.Data;
 using Api.Models.Entities;
 using Api.Models.ViewModels;
@@ -17,7 +16,8 @@ namespace Api.Repositories.Implementations
         {
             var query = from recordatorio in _context.RecordatoriosCRM
                         join usuario in _context.Operadores on (int)recordatorio.Operador equals usuario.OpCodigo
-                        join cliente in _context.Clientes on recordatorio.Cliente equals cliente.Codigo
+                        join cliente in _context.Clientes on recordatorio.Cliente equals cliente.Codigo into clienteGroup
+                        from cliente in clienteGroup.DefaultIfEmpty()
                         select new RecordatorioCRMViewModel
                         {
                             Codigo = recordatorio.Codigo,
@@ -31,7 +31,7 @@ namespace Api.Repositories.Implementations
                             Estado = recordatorio.Estado,
                             TipoRecordatorio = recordatorio.TipoRecordatorio,
                             OperadorNombre = usuario.OpNombre,
-                            ClienteNombre = cliente.Razon
+                            ClienteNombre = cliente != null ? cliente.Razon : null
                         };
 
             return await query.ToListAsync();
@@ -41,7 +41,8 @@ namespace Api.Repositories.Implementations
         {
             var query = from recordatorio in _context.RecordatoriosCRM
                         join usuario in _context.Operadores on (int)recordatorio.Operador equals usuario.OpCodigo
-                        join cliente in _context.Clientes on recordatorio.Cliente equals cliente.Codigo
+                        join cliente in _context.Clientes on recordatorio.Cliente equals cliente.Codigo into clienteGroup
+                        from cliente in clienteGroup.DefaultIfEmpty()
                         where recordatorio.Codigo == id
                         select new RecordatorioCRMViewModel
                         {
@@ -56,7 +57,7 @@ namespace Api.Repositories.Implementations
                             Estado = recordatorio.Estado,
                             TipoRecordatorio = recordatorio.TipoRecordatorio,
                             OperadorNombre = usuario.OpNombre,
-                            ClienteNombre = cliente.Razon
+                            ClienteNombre = cliente != null ? cliente.Razon : null
                         };
 
             return await query.FirstOrDefaultAsync();

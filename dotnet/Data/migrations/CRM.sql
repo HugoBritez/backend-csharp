@@ -47,7 +47,7 @@ CREATE TABLE oportunidades_crm (
     op_valor_negociacion DECIMAL(15,2) NOT NULL DEFAULT 0.00,
     op_fecha_inicio DATETIME NOT NULL,
     op_fecha_fin DATETIME NULL,
-    op_operador INT NOT NULL,
+    op_operador INT UNSIGNED NOT NULL,
     op_estado INT UNSIGNED NOT NULL,
     op_general INT NOT NULL DEFAULT 0,
     
@@ -78,9 +78,6 @@ CREATE TABLE tareas_crm (
     -- Clave foránea
     FOREIGN KEY (ta_oportunidad) REFERENCES oportunidades_crm(op_codigo)
 );
-
-
-
 
 -- Índices para mejorar el rendimiento
 CREATE INDEX idx_tareas_crm_oportunidad ON tareas_crm(ta_oportunidad);
@@ -168,8 +165,6 @@ INSERT IGNORE INTO estados_crm (id, descripcion) VALUES
 (2, 'En Negociación'),
 (3, 'Concluidos'),
 (4, 'Rechazada');
-
-
 
 INSERT INTO tipo_tarea_crm (tipo_codigo, tipo_descripcion, tipo_estado) VALUES
 (1, 'Llamada', 1),
