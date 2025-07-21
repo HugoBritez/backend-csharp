@@ -13,4 +13,5 @@ Crear un endpoint en la api que Meta pueda escuchar para recibir los mensajes
 disenar la arquitectura para no romper nada
 
 a tener en cuenta:
-    - microservicio en hono o monolito en c# 
+    - microservicio en hono.ts o monolito en c#
+    - 

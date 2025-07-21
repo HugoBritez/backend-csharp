@@ -49,8 +49,20 @@ namespace Api.Repositories.Implementations
             if (oportunidad.Operador > 0)
                 oportunidadExistente.Operador = oportunidad.Operador;
             
-            if (oportunidad.Estado > 0)
+            // Verificar si hay cambio de estado y si es 3, actualizar fecha de finalización
+            if (oportunidad.Estado > 0 && oportunidad.Estado != oportunidadExistente.Estado)
+            {
                 oportunidadExistente.Estado = oportunidad.Estado;
+                
+                // Si el nuevo estado es 3 o 4, establecer la fecha de finalización al momento actual
+                if (oportunidad.Estado == 3 || oportunidad.Estado == 4)
+                {
+                    oportunidadExistente.FechaFin = DateTime.Now;
+                }
+                else {
+                    oportunidadExistente.FechaFin = null;
+                }
+            }
             
             if (oportunidad.General != 0)
                 oportunidadExistente.General = oportunidad.General;
