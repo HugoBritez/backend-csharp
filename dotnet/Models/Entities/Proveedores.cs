@@ -9,19 +9,19 @@ namespace Api.Models.Entities
         [Column("pro_codigo")]
         public uint Codigo { get; set; }
         [Column("pro_razon")]
-        public string Razon { get; set; } = string.Empty;
+        public string? Razon { get; set; }
         [Column("pro_nombre_comun")]
-        public string NombreComun { get; set; } = string.Empty;
+        public string? NombreComun { get; set; }
         [Column("pro_ruc")]
-        public string Ruc { get; set; } = string.Empty;
+        public string? Ruc { get; set; }
         [Column("pro_dir")]
-        public string Direccion { get; set; } = string.Empty;
+        public string? Direccion { get; set; }
         [Column("pro_tel")]
-        public string Telefono { get; set; } = string.Empty;
+        public string? Telefono { get; set; }
         [Column("pro_mail")]
-        public string Mail { get; set; } = string.Empty;
+        public string? Mail { get; set; }
         [Column("pro_obs")]
-        public string Observacion { get; set; } = string.Empty;
+        public string? Observacion { get; set; }
         [Column("pro_moneda")]
         public uint Moneda { get; set; }
         [Column("pro_zona")]
@@ -29,7 +29,7 @@ namespace Api.Models.Entities
         [Column("pro_estado")]
         public int Estado { get; set; }
         [Column("pais_extranjero")]
-        public string PaisExtranjero { get; set; } = string.Empty;
+        public string? PaisExtranjero { get; set; }
         [Column("pro_plazo")]
         public uint Plazo { get; set; }
         [Column("pro_credito")]
@@ -37,13 +37,13 @@ namespace Api.Models.Entities
         [Column("pro_tiponac")]
         public uint TipoNac { get; set; }
         [Column("pro_supervisor")]
-        public string Supervisor { get; set; } = string.Empty;
+        public string? Supervisor { get; set; }
         [Column("pro_telef_super")]
-        public string TelefonoSupervisor { get; set; } = string.Empty;
+        public string? TelefonoSupervisor { get; set; }
         [Column("pro_vendedor")]
-        public string Vendedor { get; set; } = string.Empty;
+        public string? Vendedor { get; set; }
         [Column("pro_telef_vend")]
-        public string TelefonoVendedor { get; set; } = string.Empty;
+        public string? TelefonoVendedor { get; set; }
         [Column("pro_aplicar_gasto")]
         public uint AplicarGasto { get; set; }
         [Column("pro_plan")]
@@ -52,7 +52,7 @@ namespace Api.Models.Entities
         public uint TipoDoc { get; set; }
 
         [Column("pro_key")]
-        public string Key { get; set; } = string.Empty;
+        public string? Key { get; set; }
 
         public virtual Zona? Zona { get; set; }
     }

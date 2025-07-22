@@ -434,6 +434,8 @@ namespace Api.Repositories.Implementations
                 parameters.Add("@FechaFin", $"{parametros.AnioInicio}1231");
             }
 
+            Console.WriteLine(query);
+
             return await connection.QueryAsync<DetalleVentaAnual>(query, parameters);
         }
 

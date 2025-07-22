@@ -10,19 +10,19 @@ namespace Api.Models.Entities
         public int OpCodigo { get; set; }
 
         [Column("op_nombre")]
-        public string OpNombre { get; set; } = string.Empty;
+        public string? OpNombre { get; set; }
 
         [Column("op_documento")]
-        public string OpDocumento { get; set; } = string.Empty;
+        public string? OpDocumento { get; set; }
 
         [Column("op_dir")]
-        public string OpDireccion { get; set; } = string.Empty;
+        public string? OpDireccion { get; set; }
 
         [Column("op_tel")]
-        public string OpTelefono { get; set; } = string.Empty;
+        public string? OpTelefono { get; set; }
 
         [Column("op_email")]
-        public string OpEmail { get; set; } = string.Empty;
+        public string? OpEmail { get; set; }
 
         [Column("op_fechaingreso")]
         public DateTime OpFechaIngreso { get; set; }
@@ -34,13 +34,13 @@ namespace Api.Models.Entities
         public DateTime OpFechaNacimiento { get; set;}
 
         [Column("op_obs")]
-        public string OpObservacion { get; set; } = string.Empty;
+        public string? OpObservacion { get; set; }
 
         [Column("op_estado")]
         public int OpEstado { get; set; }
 
         [Column("op_usuario")]
-        public string OpUsuario { get; set; } = string.Empty;
+        public string? OpUsuario { get; set; }
 
         [Column("op_sucursal")]
         public int OpSucursal {get; set;}
@@ -97,7 +97,7 @@ namespace Api.Models.Entities
         public int OpVerProveedor { get; set;}
 
         [Column("op_contrasena")]
-        public string OpContrasena { get;  set; } = string.Empty;
+        public string? OpContrasena { get;  set; }
 
         [Column("op_uti")]
         public int OpUti { get; set; }

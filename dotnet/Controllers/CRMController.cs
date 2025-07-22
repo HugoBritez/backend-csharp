@@ -5,6 +5,10 @@ using Api.Models.ViewModels;
 using Api.Model.Entities;
 using Api.Repositories.Interfaces;
 using Api.Repositories.Implementations;
+using Storage;
+using Microsoft.AspNetCore.Http;
+using System.Security.Cryptography;
+using Api.Models.Dtos.CRM;
 
 namespace Api.Controllers
 {
@@ -17,13 +21,17 @@ namespace Api.Controllers
         private readonly IEstadoCRMRepository _estadoCRMRepository;
         private readonly IAgendamientoCRMRepository _agendamientoCRMRepository;
         private readonly IRecordatorioCRMRepository _recordatorioCRMRepository;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly IProyectosColaboradoresRepositoryCRM _proyectosColaboradoresRepository;
 
-        public CRMController(ICRMService crmService, IEstadoCRMRepository estadoCRMRepository, IAgendamientoCRMRepository agendamientoCRMRepository, IRecordatorioCRMRepository recordatorioCRMRepository)
+        public CRMController(ICRMService crmService, IEstadoCRMRepository estadoCRMRepository, IAgendamientoCRMRepository agendamientoCRMRepository, IRecordatorioCRMRepository recordatorioCRMRepository, IFileStorageService fileStorageService, IProyectosColaboradoresRepositoryCRM proyectosColaboradoresRepository)
         {
             _crmService = crmService;
             _estadoCRMRepository = estadoCRMRepository;
             _agendamientoCRMRepository = agendamientoCRMRepository;
             _recordatorioCRMRepository = recordatorioCRMRepository;
+            _fileStorageService = fileStorageService;
+            _proyectosColaboradoresRepository = proyectosColaboradoresRepository;
         }
 
         // Endpoints para Contactos
@@ -92,14 +100,14 @@ namespace Api.Controllers
         }
 
         [HttpPost("oportunidades")]
-        public async Task<ActionResult<OportunidadCRM>> CrearOportunidad([FromBody] OportunidadCRM oportunidad)
+        public async Task<ActionResult<OportunidadCRM>> CrearOportunidad([FromBody] CrearOportunidadDTO oportunidad)
         {
             var nuevaOportunidad = await _crmService.CrearOportunidad(oportunidad);
             return CreatedAtAction(nameof(GetOportunidadById), new { id = nuevaOportunidad.Codigo }, nuevaOportunidad);
         }
 
         [HttpPut("oportunidades")]
-        public async Task<ActionResult<OportunidadCRM>> ActualizarOportunidad([FromBody] OportunidadCRM oportunidad)
+        public async Task<ActionResult<OportunidadCRM>> ActualizarOportunidad([FromBody] CrearOportunidadDTO oportunidad)
         {
             var oportunidadActualizada = await _crmService.ActualizarOportunidad(oportunidad);
             return Ok(oportunidadActualizada);
@@ -252,6 +260,152 @@ namespace Api.Controllers
         {
             var recordatorioActualizado = await _recordatorioCRMRepository.Update(recordatorio);
             return Ok(recordatorioActualizado);
+        }
+
+        [HttpPost("files")]
+        public async Task<ActionResult<string>> UploadFile(
+            [FromForm] IFormFile file,
+            [FromQuery] string folder = "crm"
+        )
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No se ha proporcionado ningún archivo");
+
+            try
+            {
+                using var stream = file.OpenReadStream();
+                var path = await _fileStorageService.SaveFileAsync(stream, file.FileName, folder);
+                return Ok(new { path, fileName = file.FileName, size = file.Length });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error interno del servidor");
+            }
+        }
+
+        // NUEVO ENDPOINT PARA LISTAR ARCHIVOS - CORREGIDO
+        [HttpGet("files")]
+        public ActionResult<IEnumerable<object>> ListFiles([FromQuery] string folder = "crm")
+        {
+            try
+            {
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "files", folder.ToLowerInvariant());
+                
+                if (!Directory.Exists(folderPath))
+                {
+                    return Ok(new List<object>());
+                }
+
+                var files = Directory.GetFiles(folderPath)
+                    .Select(filePath => new
+                    {
+                        fileName = Path.GetFileName(filePath),
+                        path = Path.Combine(folder, Path.GetFileName(filePath)).Replace("\\", "/"),
+                        size = new FileInfo(filePath).Length,
+                        lastModified = System.IO.File.GetLastWriteTime(filePath),
+                        contentType = GetContentType(Path.GetFileName(filePath))
+                    })
+                    .OrderByDescending(f => f.lastModified);
+
+                return Ok(files);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        [HttpGet("files/{*path}")]
+        public async Task<ActionResult> GetFile(string path)
+        {
+            try
+            {
+                // Validar que el path no termine en / (carpeta)
+                if (path.EndsWith("/") || path.EndsWith("\\"))
+                {
+                    return BadRequest("Debe especificar un archivo, no una carpeta");
+                }
+
+                var fileStream = await _fileStorageService.GetFileAsync(path);
+                var fileName = Path.GetFileName(path);
+                var contentType = GetContentType(fileName);
+                
+                return File(fileStream, contentType, fileName);
+            }
+            catch (FileNotFoundException)
+            {
+                return NotFound("Archivo no encontrado");
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error interno del servidor");
+            }
+        }
+
+        [HttpDelete("files/{*path}")]
+        public async Task<ActionResult> DeleteFile(string path)
+        {
+            try
+            {
+                await _fileStorageService.DeleteFileAsync(path);
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error interno del servidor");
+            }
+        }
+
+        public interface IColaboradoresDTO
+        {
+            public uint Proyecto { get; set; }
+            public IEnumerable<uint> Colaboradores { get; set; }
+        }
+
+        [HttpPost("colaboradores")]
+        public async Task<ActionResult<IEnumerable<ProyectosColaboradoresCRM>>> CreateColaboradores([FromBody] IColaboradoresDTO request)
+        {
+            try
+            {
+                var colaboradoresCreados = await _crmService.CreateColaborador(request.Proyecto, request.Colaboradores);
+                return Ok(colaboradoresCreados);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno del servidor: {ex.Message}");
+            }
+        }
+
+        [HttpPut("colaboradores")]
+        public async Task<ActionResult<ProyectosColaboradoresCRM>> UpdateColaborador([FromBody] ProyectosColaboradoresCRM colaborador)
+        {
+            var colaboradorActualizado = await _proyectosColaboradoresRepository.Update(colaborador);
+            return Ok(colaboradorActualizado);
+        }
+        private string GetContentType(string fileName)
+        {
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            return extension switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".pdf" => "application/pdf",
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                _ => "application/octet-stream"
+            };
         }
     }
 }

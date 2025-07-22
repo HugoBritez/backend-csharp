@@ -135,12 +135,6 @@ FOREIGN KEY (ta_tipo_tarea) REFERENCES tipo_tarea_crm(tipo_codigo);
 CREATE INDEX idx_tareas_crm_tipo_tarea_fk ON tareas_crm(ta_tipo_tarea);
 
 
-CREATE TABLE crm_columna_kanban (
-    ck_codigo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    ck_nombre VARCHAR(255) NULL,
-    ck_estado INT UNSIGNED NOT NULL DEFAULT 1
-);
-
 CREATE TABLE recordatorios_crm (
     re_codigo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     re_titulo VARCHAR(255) NULL,
@@ -179,4 +173,13 @@ INSERT INTO tipo_tarea_crm (tipo_codigo, tipo_descripcion, tipo_estado) VALUES
 (10, 'Cierre de venta', 1),
 (11, 'Capacitación', 1),
 (12, 'Soporte técnico', 1);
+
+CREATE TABLE proyectos_colaboradores_crm (
+    pc_codigo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    pc_proyecto INT UNSIGNED NOT NULL,
+    pc_colaborador INT UNSIGNED NOT NULL,
+    pc_estado INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (pc_proyecto) REFERENCES oportunidades_crm (op_codigo),
+    FOREIGN KEY (pc_colaborador) REFERENCES operadores (op_codigo)
+);
 

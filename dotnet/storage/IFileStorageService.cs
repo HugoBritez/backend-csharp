@@ -7,5 +7,4 @@ namespace Storage
         Task<Stream> GetFileAsync(string path);
         Task DeleteFileAsync(string path);
     }
-
 }

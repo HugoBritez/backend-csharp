@@ -1,4 +1,5 @@
 using Api.Model.Entities;
+using Api.Models.Dtos.CRM;
 using Api.Models.Entities;
 using Api.Models.ViewModels;
 using Api.Repositories.Interfaces;
@@ -16,7 +17,7 @@ namespace Api.Services.Implementations
         private readonly IZonaRepository _zonasRepository;
         private readonly IDepartamentoRepository _departamentosRepository;
         private readonly ICiudadesRepository _ciudadesRepository;
-
+        private readonly IProyectosColaboradoresRepositoryCRM _proyectosColaboradoresRepository;
         public CRMService(
             IContactosCRMRepository contactosCRMRepository, 
             IOportunidadesCRMRepository oportunidadesCRMRepository, 
@@ -24,7 +25,8 @@ namespace Api.Services.Implementations
             ILogger<CRMService> logger,
             IZonaRepository zonasRepository,
             IDepartamentoRepository departamentosRepository,
-            ICiudadesRepository ciudadesRepository)
+            ICiudadesRepository ciudadesRepository,
+            IProyectosColaboradoresRepositoryCRM proyectosColaboradoresRepository)
         {
             _contactosCRMRepository = contactosCRMRepository;
             _oportunidadesCRMRepository = oportunidadesCRMRepository;
@@ -33,6 +35,7 @@ namespace Api.Services.Implementations
             _zonasRepository = zonasRepository;
             _departamentosRepository = departamentosRepository;
             _ciudadesRepository = ciudadesRepository;
+            _proyectosColaboradoresRepository = proyectosColaboradoresRepository;
         }
 
         #region Contactos
@@ -97,14 +100,19 @@ namespace Api.Services.Implementations
         }
         #endregion
 
+
         #region Oportunidades
-        public async Task<OportunidadCRM> CrearOportunidad(OportunidadCRM oportunidad)
+        public async Task<OportunidadCRM> CrearOportunidad(CrearOportunidadDTO oportunidad)
         {
             try
             {
                 _logger.LogInformation("Creando nueva oportunidad: {Titulo}", oportunidad.Titulo);
                 var resultado = await _oportunidadesCRMRepository.CrearOportunidad(oportunidad);
                 _logger.LogInformation("Oportunidad creada exitosamente con ID: {Id}", resultado.Codigo);
+                if (oportunidad.Colaboradores != null && oportunidad.Colaboradores.Any())
+                {
+                    await CreateColaborador(oportunidad.Codigo, oportunidad.Colaboradores);
+                }
                 return resultado;
             }
             catch (Exception ex)
@@ -114,13 +122,26 @@ namespace Api.Services.Implementations
             }
         }
 
-        public async Task<OportunidadCRM> ActualizarOportunidad(OportunidadCRM oportunidad)
+        public async Task<OportunidadCRM> ActualizarOportunidad(CrearOportunidadDTO oportunidad)
         {
             try
             {
                 _logger.LogInformation("Actualizando oportunidad con ID: {Id}", oportunidad.Codigo);
                 var resultado = await _oportunidadesCRMRepository.ActualizarOportunidad(oportunidad);
                 _logger.LogInformation("Oportunidad actualizada exitosamente: {Id}", resultado.Codigo);
+                
+                // Sincronizar colaboradores usando soft delete
+                if (oportunidad.Colaboradores != null)
+                {
+                    await SincronizarColaboradores(oportunidad.Codigo, oportunidad.Colaboradores);
+                }
+                else
+                {
+                    // Si la lista es null, desactivar todos los colaboradores
+                    await _proyectosColaboradoresRepository.SoftDeleteByProyecto(oportunidad.Codigo);
+                    _logger.LogInformation("Todos los colaboradores desactivados del proyecto {Proyecto}", oportunidad.Codigo);
+                }
+                
                 return resultado;
             }
             catch (Exception ex)
@@ -135,7 +156,13 @@ namespace Api.Services.Implementations
             try
             {
                 _logger.LogDebug("Buscando oportunidad con ID: {Id}", id);
-                return await _oportunidadesCRMRepository.GetOportunidadCompletaById(id);
+                var oportunidad = await _oportunidadesCRMRepository.GetOportunidadCompletaById(id);
+                if (oportunidad != null)
+                {
+                    var colaboradores = await _proyectosColaboradoresRepository.GetByProyecto(id);
+                    oportunidad.Colaboradores = colaboradores;
+                }
+                return oportunidad;
             }
             catch (Exception ex)
             {
@@ -150,7 +177,13 @@ namespace Api.Services.Implementations
             {
                 _logger.LogDebug("Obteniendo lista de oportunidades con filtros: fechaInicio={FechaInicio}, fechaFin={FechaFin}", 
                     fechaInicio?.ToString("yyyy-MM-dd"), fechaFin?.ToString("yyyy-MM-dd"));
-                return await _oportunidadesCRMRepository.GetOportunidadesCompletas(fechaInicio, fechaFin);
+                var oportunidades = await _oportunidadesCRMRepository.GetOportunidadesCompletas(fechaInicio, fechaFin);
+                foreach (var oportunidad in oportunidades)
+                {
+                    var colaboradores = await _proyectosColaboradoresRepository.GetByProyecto(oportunidad.Codigo);
+                    oportunidad.Colaboradores = colaboradores;
+                }
+                return oportunidades;
             }
             catch (Exception ex)
             {
@@ -303,6 +336,131 @@ namespace Api.Services.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al obtener tipos de tareas");
+                throw;
+            }
+        }
+        #endregion
+
+        #region Colaboradores
+        public async Task<IEnumerable<ProyectosColaboradoresCRM>> CreateColaborador(uint proyecto, IEnumerable<uint> colaboradores)
+        {
+            try
+            {
+                _logger.LogInformation("Creando colaboradores para proyecto: {Proyecto}", proyecto);
+                
+                if (colaboradores == null || !colaboradores.Any())
+                {
+                    throw new ArgumentException("La lista de colaboradores no puede ser nula o vacía");
+                }
+
+                var colaboradoresCreados = new List<ProyectosColaboradoresCRM>();
+                
+                foreach (var colaborador in colaboradores)
+                {
+                    // Verificar si ya existe el colaborador activo para este proyecto
+                    var existente = await _proyectosColaboradoresRepository.GetByProyecto(proyecto);
+                    if (existente.Any(c => c.Colaborador == colaborador && c.Estado == 1))
+                    {
+                        _logger.LogWarning("El colaborador {Colaborador} ya existe activo para el proyecto {Proyecto}", colaborador, proyecto);
+                        continue;
+                    }
+
+                    // Verificar si existe pero está inactivo para reactivarlo
+                    var inactivo = existente.FirstOrDefault(c => c.Colaborador == colaborador && c.Estado == 0);
+                    if (inactivo != null)
+                    {
+                        await _proyectosColaboradoresRepository.ActivarColaborador(proyecto, colaborador);
+                        colaboradoresCreados.Add(inactivo);
+                        _logger.LogDebug("Colaborador {Colaborador} reactivado en el proyecto {Proyecto}", colaborador, proyecto);
+                        continue;
+                    }
+
+                    var nuevoColaborador = new ProyectosColaboradoresCRM
+                    {
+                        Proyecto = proyecto,
+                        Colaborador = colaborador,
+                        Estado = 1
+                    };
+
+                    var creado = await _proyectosColaboradoresRepository.Create(nuevoColaborador);
+                    colaboradoresCreados.Add(creado);
+                    _logger.LogDebug("Colaborador {Colaborador} agregado al proyecto {Proyecto}", colaborador, proyecto);
+                }
+
+                _logger.LogInformation("Se procesaron {Cantidad} colaboradores para el proyecto {Proyecto}", 
+                    colaboradoresCreados.Count, proyecto);
+                
+                return colaboradoresCreados;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear colaboradores para proyecto: {Proyecto}", proyecto);
+                throw;
+            }
+        }
+        
+        public async Task<IEnumerable<ProyectosColaboradoresCRM>> SincronizarColaboradores(uint proyecto, IEnumerable<uint> nuevosColaboradores)
+        {
+            try
+            {
+                _logger.LogInformation("Sincronizando colaboradores para proyecto: {Proyecto}", proyecto);
+                
+                // Obtener colaboradores activos actuales
+                var colaboradoresActuales = await _proyectosColaboradoresRepository.GetByProyecto(proyecto);
+                var colaboradoresActivosIds = colaboradoresActuales.Where(c => c.Estado == 1).Select(c => c.Colaborador).ToHashSet();
+                
+                // Convertir la nueva lista a HashSet para comparación eficiente
+                var nuevosColaboradoresSet = nuevosColaboradores?.ToHashSet() ?? new HashSet<uint>();
+                
+                // Colaboradores a desactivar (están activos pero no en la nueva lista)
+                var colaboradoresADesactivar = colaboradoresActivosIds.Except(nuevosColaboradoresSet);
+                
+                // Colaboradores a activar/agregar (están en la nueva lista pero no activos)
+                var colaboradoresAActivar = nuevosColaboradoresSet.Except(colaboradoresActivosIds);
+                
+                // Desactivar colaboradores que ya no están en la lista
+                foreach (var colaboradorId in colaboradoresADesactivar)
+                {
+                    await _proyectosColaboradoresRepository.SoftDeleteByProyectoAndColaborador(proyecto, colaboradorId);
+                    _logger.LogDebug("Colaborador {Colaborador} desactivado del proyecto {Proyecto}", colaboradorId, proyecto);
+                }
+                
+                // Activar/agregar nuevos colaboradores
+                var colaboradoresProcesados = new List<ProyectosColaboradoresCRM>();
+                foreach (var colaboradorId in colaboradoresAActivar)
+                {
+                    // Verificar si existe pero está inactivo
+                    var existente = colaboradoresActuales.FirstOrDefault(c => c.Colaborador == colaboradorId && c.Estado == 0);
+                    if (existente != null)
+                    {
+                        await _proyectosColaboradoresRepository.ActivarColaborador(proyecto, colaboradorId);
+                        colaboradoresProcesados.Add(existente);
+                        _logger.LogDebug("Colaborador {Colaborador} reactivado en el proyecto {Proyecto}", colaboradorId, proyecto);
+                    }
+                    else
+                    {
+                        // Crear nuevo colaborador
+                        var nuevoColaborador = new ProyectosColaboradoresCRM
+                        {
+                            Proyecto = proyecto,
+                            Colaborador = colaboradorId,
+                            Estado = 1
+                        };
+
+                        var creado = await _proyectosColaboradoresRepository.Create(nuevoColaborador);
+                        colaboradoresProcesados.Add(creado);
+                        _logger.LogDebug("Colaborador {Colaborador} agregado al proyecto {Proyecto}", colaboradorId, proyecto);
+                    }
+                }
+                
+                _logger.LogInformation("Sincronización completada para proyecto {Proyecto}: {Desactivados} desactivados, {Activados} activados/agregados", 
+                    proyecto, colaboradoresADesactivar.Count(), colaboradoresAActivar.Count());
+                
+                return colaboradoresProcesados;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al sincronizar colaboradores para proyecto: {Proyecto}", proyecto);
                 throw;
             }
         }

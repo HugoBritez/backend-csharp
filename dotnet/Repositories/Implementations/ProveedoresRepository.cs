@@ -24,7 +24,7 @@ namespace Api.Repositories.Implementations
             .Select(p => new ProveedorViewModel
             {
                 ProCodigo = p.Codigo,
-                ProRazon = p.Razon,
+                ProRazon = p.Razon ?? "Sin razon social",
                 ProZona = p.Zona != null ? p.Zona.Descripcion : null
             });
 
@@ -64,8 +64,11 @@ namespace Api.Repositories.Implementations
 
             if (!string.IsNullOrWhiteSpace(Busqueda))
             {
-                query = query.Where(pro => pro.NombreComun.ToLower().Contains(Busqueda.ToLower()) ||
-                pro.Razon.ToLower().Contains(Busqueda.ToLower()));
+                var busquedaLower = Busqueda.ToLower();
+                query = query.Where(pro =>
+                    (pro.NombreComun != null && pro.NombreComun.ToLower().Contains(busquedaLower)) ||
+                    (pro.Razon != null && pro.Razon.ToLower().Contains(busquedaLower))
+                );
             }
 
             return await query.Take(500).ToListAsync();

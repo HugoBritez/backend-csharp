@@ -15,6 +15,7 @@ using Api.Services.Implementations;
 using Dapper;
 using Api.Models.ViewModels;
 using Serilog;
+using Storage;
 
 // Cargar archivo específico según entorno
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
@@ -186,7 +187,8 @@ builder.Services.AddScoped<IAgendamientoCRMRepository, AgendamientoCRMRepository
 builder.Services.AddScoped<IDoctoresRepository, DoctoresRepository>();
 builder.Services.AddScoped<IPacientesRepository, PacientesRepository>();
 builder.Services.AddScoped<IRecordatorioCRMRepository, RecordatorioCRMRepository>();
-
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+builder.Services.AddScoped<IProyectosColaboradoresRepositoryCRM, ProyectosColaboradoresCRMRepository>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerDocument(config =>

@@ -33,7 +33,11 @@ namespace Api.Repositories.Implementations
 
             if (!string.IsNullOrWhiteSpace(Busqueda))
             {
-                query = query.Where(per => per.RazonSocial.Contains(Busqueda, StringComparison.CurrentCultureIgnoreCase) || per.NombreFantasia.Contains(Busqueda, StringComparison.CurrentCultureIgnoreCase));
+                var busquedaLower = Busqueda.ToLower();
+                query = query.Where(per =>
+                    (per.RazonSocial != null && per.RazonSocial.ToLower().Contains(busquedaLower)) ||
+                    (per.NombreFantasia != null && per.NombreFantasia.ToLower().Contains(busquedaLower))
+                );
             }
             return await query.ToListAsync();
         }

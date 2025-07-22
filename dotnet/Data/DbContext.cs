@@ -80,6 +80,8 @@ namespace Api.Data
         public DbSet<Doctor> Doctores { get; set; }
         public DbSet<Paciente> Pacientes { get; set; }
         public DbSet<RecordatorioCRM> RecordatoriosCRM { get; set; }
+        public DbSet<ProyectosColaboradoresCRM> ProyectosColaboradoresCRM { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
