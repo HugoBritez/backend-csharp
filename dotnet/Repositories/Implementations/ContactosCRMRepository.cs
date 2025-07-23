@@ -63,7 +63,7 @@ public class ContactosCRMRepository(ApplicationDbContext context) : IContactosCR
                         ZonaDescripcion = zona.Descripcion,
                         Operador = contacto.Operador,
                         General = contacto.General,
-                        OperadorNombre = operador.OpNombre
+                        OperadorNombre = operador.OpNombre,
                     };
 
         return await query.FirstOrDefaultAsync();

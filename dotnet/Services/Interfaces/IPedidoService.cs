@@ -13,12 +13,13 @@ namespace Api.Services.Interfaces
             string? fechaHasta,
             string? nroPedido,
             int? articulo,
-            string? clientes,
+            IEnumerable<int>? clientes,
             string? vendedores,
             string? sucursales,
             string? estado,
             int? moneda,
-            string? factura
+            string? factura,
+            int? limit = null
         );
 
         Task<ResponseViewModel<Pedido>> AutorizarPedido(uint idPedido, string usuario, string password);
@@ -26,5 +27,7 @@ namespace Api.Services.Interfaces
         Task<DetallePedido?> CambiarLoteDetallePedido(uint idDetallePedido, string lote, uint idLote);
 
         Task<DetallePedidoFaltante> AnularFaltante(uint detalleFaltante);
+
+        Task<IEnumerable<PedidoViewModel>> GetPedidosPorCliente(string clienteRuc);
     }
 }

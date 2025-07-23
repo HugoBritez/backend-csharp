@@ -33,7 +33,7 @@ namespace Api.Controllers
             [FromQuery] string? fechaHasta,
             [FromQuery] string? nroPedido,
             [FromQuery] int? articulo,
-            [FromQuery] string? clientes,
+            [FromQuery] IEnumerable<int>? clientes,
             [FromQuery] string? vendedores,
             [FromQuery] string? sucursales,
             [FromQuery] string? estado,
@@ -160,6 +160,15 @@ namespace Api.Controllers
                 request.idLote
             );
             return Ok(response);
+        }
+
+        [HttpGet("cliente/{clienteRuc}")]
+        public async Task<ActionResult<IEnumerable<PedidoViewModel>>> GetPedidosPorCliente(
+            [FromRoute] string clienteRuc
+        )
+        {
+            var pedidos = await _pedidosService.GetPedidosPorCliente(clienteRuc);
+            return Ok(pedidos);
         }
     }
 }

@@ -17,6 +17,8 @@ namespace Api.Services.Implementations
         private readonly IAreaSecuenciaRepository _areaSecuenciaRepository;
         private readonly IPedidoEstadoRepository _pedidoEstadoRepository;
 
+        private readonly IClienteRepository _clienteRepository;
+
         private readonly IAuthService _authService;
 
         public PedidoService(
@@ -27,7 +29,8 @@ namespace Api.Services.Implementations
             IArticuloLoteRepository articuloLoteRepository,
             IAreaSecuenciaRepository areaSecuenciaRepository,
             IPedidoEstadoRepository pedidoEstadoRepository,
-            IAuthService authService
+            IAuthService authService,
+            IClienteRepository clienteRepository
         )
         {
             _pedidoRepository = pedidosRepository;
@@ -38,6 +41,7 @@ namespace Api.Services.Implementations
             _areaSecuenciaRepository = areaSecuenciaRepository;
             _pedidoEstadoRepository = pedidoEstadoRepository;
             _authService = authService;
+            _clienteRepository = clienteRepository;
         }
 
         public async Task<Pedido> CrearPedido(Pedido pedido, IEnumerable<DetallePedido> detallePedido)
@@ -144,12 +148,13 @@ namespace Api.Services.Implementations
         string? fechaHasta,
         string? nroPedido,
         int? articulo,
-        string? clientes,
+        IEnumerable<int>? clientes,
         string? vendedores,
         string? sucursales,
         string? estado,
         int? moneda,
-        string? factura
+        string? factura,
+        int? limit = null
         )
         {
             var pedidos = await _pedidoRepository.GetPedidos(
@@ -270,6 +275,25 @@ namespace Api.Services.Implementations
                 Console.WriteLine($"Error durante el update: {ex.Message}");
                 throw;
             }
+        }
+
+        public async Task<IEnumerable<PedidoViewModel>> GetPedidosPorCliente(string clienteRuc)
+        {
+            var cliente = await _clienteRepository.GetByRuc(clienteRuc) ?? throw new Exception("Cliente no encontrado");
+            var pedidos = await _pedidoRepository.GetPedidos(
+                null, // fechaDesde
+                null, // fechaHasta
+                null, // nroPedido
+                null, // articulo
+                [(int)cliente.Codigo],
+                null,// vendedores
+                null, // sucursales,
+                null, // estado
+                null, //moneda
+                null,// factura
+                3 // limit
+            );
+            return pedidos;
         }
     }
 }

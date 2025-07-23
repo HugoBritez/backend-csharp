@@ -58,14 +58,19 @@ namespace Api.Repositories.Implementations
                 if (oportunidad.Estado == 3 || oportunidad.Estado == 4)
                 {
                     oportunidadExistente.FechaFin = DateTime.Now;
+                    if (oportunidad.AutorizadoPor.HasValue)
+                oportunidadExistente.AutorizadoPor = oportunidad.AutorizadoPor;
                 }
                 else {
                     oportunidadExistente.FechaFin = null;
+                    oportunidadExistente.AutorizadoPor = null;
                 }
             }
             
             if (oportunidad.General != 0)
                 oportunidadExistente.General = oportunidad.General;
+
+            
 
             // Marcar la entidad como modificada
             _context.Oportunidades.Update(oportunidadExistente);
@@ -100,6 +105,11 @@ namespace Api.Repositories.Implementations
                         join operador in _context.Operadores on (int)oportunidad.Operador equals operador.OpCodigo
                         join estado in _context.EstadoCRM on oportunidad.Estado equals estado.Id
                         where oportunidad.Codigo == id
+                        // Left join para AutorizadoPor, ya que puede ser null
+                        join autorizadoPorEntity in _context.Operadores on (int?)oportunidad.AutorizadoPor equals autorizadoPorEntity.OpCodigo into autorizadoPorJoin
+                        from autorizadoPor in autorizadoPorJoin.DefaultIfEmpty()
+                        // Obtener cargo por separado usando una subconsulta
+                        let cargo = _context.Cargos.FirstOrDefault(c => c.Codigo == autorizadoPor.OpCargo)
                         select new OportunidadViewModel{
                             Codigo = oportunidad.Codigo,
                             Cliente = oportunidad.Cliente,
@@ -113,7 +123,11 @@ namespace Api.Repositories.Implementations
                             General = oportunidad.General,
                             ClienteNombre = cliente.Nombre,
                             OperadorNombre = operador.OpNombre,
-                            EstadoDescripcion = estado.Descripcion
+                            EstadoDescripcion = estado.Descripcion,
+                            ClienteRuc = cliente.Ruc,
+                            AutorizadoPor = oportunidad.AutorizadoPor,
+                            AutorizadoPorNombre = autorizadoPor != null ? autorizadoPor.OpNombre : null,
+                            AutorizadoPorCargo = cargo != null ? cargo.Descripcion : null
                         };
 
             return await query.FirstOrDefaultAsync();
@@ -125,6 +139,12 @@ namespace Api.Repositories.Implementations
                         join cliente in _context.ContactosCRM on oportunidad.Cliente equals cliente.Codigo
                         join operador in _context.Operadores on (int)oportunidad.Operador equals operador.OpCodigo
                         join estado in _context.EstadoCRM on oportunidad.Estado equals estado.Id
+                        // Left join para AutorizadoPor, ya que puede ser null
+                        join autorizadoPorEntity in _context.Operadores on (int?)oportunidad.AutorizadoPor equals autorizadoPorEntity.OpCodigo into autorizadoPorJoin
+                        from autorizadoPor in autorizadoPorJoin.DefaultIfEmpty()
+                        // Left join para Cargo usando una condición más segura
+                        join cargo in _context.Cargos on new { OpCargo = (int?)autorizadoPor.OpCargo } equals new { OpCargo = (int?)cargo.Codigo } into cargoJoin
+                        from cargo in cargoJoin.DefaultIfEmpty()
                         select new OportunidadViewModel
                         {
                             Codigo = oportunidad.Codigo,
@@ -139,7 +159,11 @@ namespace Api.Repositories.Implementations
                             General = oportunidad.General,
                             ClienteNombre = cliente.Nombre,
                             OperadorNombre = operador.OpNombre,
-                            EstadoDescripcion = estado.Descripcion
+                            EstadoDescripcion = estado.Descripcion,
+                            ClienteRuc = cliente.Ruc,
+                            AutorizadoPor = oportunidad.AutorizadoPor,
+                            AutorizadoPorNombre = autorizadoPor != null ? autorizadoPor.OpNombre : null,
+                            AutorizadoPorCargo = cargo != null ? cargo.Descripcion : null
                         };
 
             // Aplicar filtros de fecha si están especificados
@@ -163,6 +187,12 @@ namespace Api.Repositories.Implementations
                         join operador in _context.Operadores on (int)oportunidad.Operador equals operador.OpCodigo
                         join estado in _context.EstadoCRM on oportunidad.Estado equals estado.Id
                         where oportunidad.Cliente == cliente
+                        // Left join para AutorizadoPor, ya que puede ser null
+                        join autorizadoPorEntity in _context.Operadores on (int?)oportunidad.AutorizadoPor equals autorizadoPorEntity.OpCodigo into autorizadoPorJoin
+                        from autorizadoPor in autorizadoPorJoin.DefaultIfEmpty()
+                        // Left join para Cargo usando una condición más segura
+                        join cargo in _context.Cargos on new { OpCargo = (int?)autorizadoPor.OpCargo } equals new { OpCargo = (int?)cargo.Codigo } into cargoJoin
+                        from cargo in cargoJoin.DefaultIfEmpty()
                         select new OportunidadViewModel
                         {
                             Codigo = oportunidad.Codigo,
@@ -177,7 +207,10 @@ namespace Api.Repositories.Implementations
                             General = oportunidad.General,
                             ClienteNombre = clienteEntity.Nombre,
                             OperadorNombre = operador.OpNombre,
-                            EstadoDescripcion = estado.Descripcion
+                            EstadoDescripcion = estado.Descripcion,
+                            AutorizadoPor = oportunidad.AutorizadoPor,
+                            AutorizadoPorNombre = autorizadoPor != null ? autorizadoPor.OpNombre : null,
+                            AutorizadoPorCargo = cargo != null ? cargo.Descripcion : null
                         };
 
             return await query.ToListAsync();
@@ -190,6 +223,12 @@ namespace Api.Repositories.Implementations
                         join operadorEntity in _context.Operadores on (int)oportunidad.Operador equals operadorEntity.OpCodigo
                         join estado in _context.EstadoCRM on oportunidad.Estado equals estado.Id
                         where oportunidad.Operador == operador
+                        // Left join para AutorizadoPor, ya que puede ser null
+                        join autorizadoPorEntity in _context.Operadores on (int?)oportunidad.AutorizadoPor equals autorizadoPorEntity.OpCodigo into autorizadoPorJoin
+                        from autorizadoPor in autorizadoPorJoin.DefaultIfEmpty()
+                        // Left join para Cargo usando una condición más segura
+                        join cargo in _context.Cargos on new { OpCargo = (int?)autorizadoPor.OpCargo } equals new { OpCargo = (int?)cargo.Codigo } into cargoJoin
+                        from cargo in cargoJoin.DefaultIfEmpty()
                         select new OportunidadViewModel
                         {
                             Codigo = oportunidad.Codigo,
@@ -204,7 +243,10 @@ namespace Api.Repositories.Implementations
                             General = oportunidad.General,
                             ClienteNombre = cliente.Nombre,
                             OperadorNombre = operadorEntity.OpNombre,
-                            EstadoDescripcion = estado.Descripcion
+                            EstadoDescripcion = estado.Descripcion,
+                            AutorizadoPor = oportunidad.AutorizadoPor,
+                            AutorizadoPorNombre = autorizadoPor != null ? autorizadoPor.OpNombre : null,
+                            AutorizadoPorCargo = cargo != null ? cargo.Descripcion : null
                         };
 
             return await query.ToListAsync();

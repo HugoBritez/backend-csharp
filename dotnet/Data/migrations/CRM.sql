@@ -126,11 +126,6 @@ ADD CONSTRAINT fk_tareas_tipo_tarea
 FOREIGN KEY (ta_tipo_tarea) REFERENCES tipo_tarea_crm(tipo_codigo);
 
 
--- Agregar la clave foránea para relacionar tareas_crm con tipo_tarea_crm
-ALTER TABLE tareas_crm 
-ADD CONSTRAINT fk_tareas_tipo_tarea 
-FOREIGN KEY (ta_tipo_tarea) REFERENCES tipo_tarea_crm(tipo_codigo);
-
 -- Agregar un índice adicional para optimizar las consultas por tipo de tarea
 CREATE INDEX idx_tareas_crm_tipo_tarea_fk ON tareas_crm(ta_tipo_tarea);
 
@@ -145,8 +140,7 @@ CREATE TABLE recordatorios_crm (
     re_operador INT UNSIGNED NOT NULL,
     re_cliente INT UNSIGNED DEFAULT NULL,
     re_estado INT NOT NULL DEFAULT 1,
-    re_tipo_recordatorio INT UNSIGNED NOT NULL
-
+    re_tipo_recordatorio INT UNSIGNED NOT NULL,
     FOREIGN KEY (re_operador) REFERENCES operadores(op_codigo),
     FOREIGN KEY (re_tipo_recordatorio) REFERENCES tipo_tarea_crm(tipo_codigo)
 );
@@ -182,4 +176,12 @@ CREATE TABLE proyectos_colaboradores_crm (
     FOREIGN KEY (pc_proyecto) REFERENCES oportunidades_crm (op_codigo),
     FOREIGN KEY (pc_colaborador) REFERENCES operadores (op_codigo)
 );
+
+-- Agregar la columna op_autorizado_por a la tabla oportunidades_crm para ver quien movio la oportunidad a estado concluido (o a cualquier otro estado)
+alter table oportunidades_crm add column op_autorizado_por int unsigned DEFAULT NULL;
+
+alter table oportunidades_crm add CONSTRAINT fk_oportunidades_crm_autorizado_por
+FOREIGN KEY (op_autorizado_por) REFERENCES operadores (op_codigo);
+
+
 

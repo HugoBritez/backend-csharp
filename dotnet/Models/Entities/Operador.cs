@@ -108,5 +108,8 @@ namespace Api.Models.Entities
         [Column("op_cliente")]
         public int OpCliente { get; set;}
 
+        [Column("op_cargo")]
+        public int OpCargo { get; set; }
+
     }
 }

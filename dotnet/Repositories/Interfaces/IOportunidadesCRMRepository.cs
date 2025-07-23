@@ -25,7 +25,5 @@ namespace Api.Repositories.Interfaces
 
         Task<IEnumerable<OportunidadViewModel>> GetOportunidadesCompletasByOperador(uint operador);
 
-        
-        
     }
 }

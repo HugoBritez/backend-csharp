@@ -10,12 +10,13 @@ namespace Api.Repositories.Interfaces
             string? fechaHasta,
             string? nroPedido,
             int? articulo,
-            string? clientes,
+            IEnumerable<int>? clientes,
             string? vendedores,
             string? sucursales,
             string? estado,
             int? moneda,
-            string? factura
+            string? factura,
+            int? limit = null
         );
 
         Task<Pedido> GetById(uint codigo);

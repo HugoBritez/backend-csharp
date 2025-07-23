@@ -12,7 +12,7 @@ namespace Api.Models.ViewModels
     public class PedidoViewModel
     {
         [JsonPropertyName("pedido_id")]
-        public int PedidoId { get; set; }
+        public uint PedidoId { get; set; }
 
         [JsonPropertyName("cliente")]
         public string Cliente { get; set; } = string.Empty;

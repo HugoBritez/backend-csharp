@@ -1,5 +1,6 @@
 using Api.Models.Dtos;
 using Api.Models.Entities;
+using Api.Models.ViewModels;
 
 namespace Api.Services.Interfaces
 {
@@ -9,6 +10,7 @@ namespace Api.Services.Interfaces
 
         Task<ReporteVentaAnual> GenerarReporte(ParametrosReporte parametros);
 
+        Task<IEnumerable<VentaViewModel>> GetVentasPorCliente(string clienteRuc);
 
     }
 }

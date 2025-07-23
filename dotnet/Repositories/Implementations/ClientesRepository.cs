@@ -192,5 +192,39 @@ namespace Api.Repositories.Implementations
             var response = await _context.Clientes.FirstOrDefaultAsync(cli=>cli.Codigo == id);
             return response;
         }
+
+        public async Task<decimal> GetDeudaCliente(uint cliente)
+        {
+            var query = @"SELECT IFNULL(SUM(ve_saldo), 0) FROM ventas WHERE ve_cliente = @cliente  AND ve_estado = 1";
+            using var connection = GetConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("cliente", cliente);
+            return await connection.QueryFirstOrDefaultAsync<decimal>(query, parameters);
+        }
+
+
+        public async Task<UltimoCobroClienteViewModel?> GetUltimoCobroCliente(uint cliente)
+        {
+            var query = @"
+                SELECT
+                    ve.ve_fecha as Fecha,
+                    dc.d_monto as Monto,
+                    op.op_nombre as Vendedor,
+                    ve.ve_codigo as Venta,
+                    cli.cli_razon as Cliente
+                FROM ventas ve
+                INNER JOIN detalle_caja_ch_cobro d ON d.dccc_venta = ve.ve_codigo
+                INNER JOIN detalle_caja_chica dc ON dc.d_codigo = d.dccc_detalleCaja
+                INNER JOIN operadores op ON op.op_codigo = ve.ve_operador
+                INNER JOIN clientes cli ON cli.cli_codigo = ve.ve_cliente
+                WHERE ve.ve_cliente = @cliente
+                ORDER BY ve.ve_fecha DESC
+                LIMIT 1
+            ";
+            using var connection = GetConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("cliente", cliente);
+            return await connection.QueryFirstOrDefaultAsync<UltimoCobroClienteViewModel>(query, parameters);
+        }
     }
 }

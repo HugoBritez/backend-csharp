@@ -30,7 +30,6 @@ namespace Api.Models.Dtos
     {
         public int CodigoArticulo { get; set; }
         public string? Descripcion { get; set; }
-        public string? CodigoBarras { get; set; }
         public decimal Stock { get; set; }
         public decimal Costo { get; set; }
         public decimal PrecioVenta1 { get; set; }

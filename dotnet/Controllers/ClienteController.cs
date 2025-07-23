@@ -16,10 +16,13 @@ namespace Api.Controllers
 
         private readonly IPersonalService _personalService;
 
-        public ClienteController(IClienteRepository clienteRepository, IPersonalService personalService)
+        private readonly IClienteService _clienteService;
+
+        public ClienteController(IClienteRepository clienteRepository, IPersonalService personalService, IClienteService clienteService)
         {
             _clienteRepository = clienteRepository;
             _personalService = personalService;
+            _clienteService = clienteService;
         }
 
         [HttpGet]
@@ -49,6 +52,18 @@ namespace Api.Controllers
             return Ok(cliente);
         }
 
+        [HttpGet("ultimo-cobro/{clienteRuc}")]
+        public async Task<ActionResult<UltimoCobroClienteViewModel>> GetUltimoCobroCliente(string clienteRuc)
+        {
+            var ultimoCobro = await _clienteService.GetUltimoCobroCliente(clienteRuc);
+            return Ok(ultimoCobro);
+        }
 
+        [HttpGet("deuda/{clienteRuc}")]
+        public async Task<ActionResult<decimal>> GetDeudaCliente(string clienteRuc)
+        {
+            var deuda = await _clienteService.GetDeudaCliente(clienteRuc);
+            return Ok(deuda);
+        }
     }
 }

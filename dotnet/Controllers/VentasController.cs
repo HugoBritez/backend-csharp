@@ -139,5 +139,14 @@ namespace Api.Controllers
             var detalle = await _detalleVentaRepository.GetDetalleParaProveedor(proveedor, venta_id);
             return Ok(detalle);
         }
+
+        [HttpGet("cliente/{clienteRuc}")]
+        public async Task<ActionResult<IEnumerable<VentaViewModel>>> GetVentasPorCliente(
+            [FromRoute] string clienteRuc
+        )
+        {
+            var ventas = await _ventaService.GetVentasPorCliente(clienteRuc);
+            return Ok(ventas);
+        }
     }
 }

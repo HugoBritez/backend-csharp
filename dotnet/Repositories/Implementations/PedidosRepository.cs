@@ -65,18 +65,21 @@ namespace Api.Repositories.Implementations
             string? fechaHasta,
             string? nroPedido,
             int? articulo,
-            string? clientes,
+            IEnumerable<int>? clientes,
             string? vendedores,
             string? sucursales,
             string? estado,
             int? moneda,
-            string? factura
+            string? factura,
+            int? limit = null
         )
         {
             using var connection = GetConnection();
             var where = "1 = 1 ";
 
-            var parameters = new DynamicParameters();
+            var limitQuery = "";
+
+            var parameters = new DynamicParameters();   
 
             if (!string.IsNullOrEmpty(nroPedido))
             {
@@ -108,10 +111,10 @@ namespace Api.Repositories.Implementations
                     parameters.Add("articulo", articulo);
                 }
 
-                if (!string.IsNullOrEmpty(clientes))
+                if (clientes != null && clientes.Any())
                 {
                     where += " AND p.p_cliente IN @clientes";
-                    parameters.Add("clientes", clientes);
+                    parameters.Add("clientes", clientes.ToList());
                 }
 
                 if (!string.IsNullOrEmpty(vendedores))
@@ -142,49 +145,60 @@ namespace Api.Repositories.Implementations
                 if (estado == "2") where += " AND p.p_estado = 2";
                 if (estado == "3") where += " AND (p.p_estado = 1 OR p.p_estado = 2)";
             }
-            var query = @"
-                            SELECT
-                                p.p_codigo AS pedido_id,
-                                cli.cli_razon as cliente,
-                                m.mo_descripcion as moneda,
-                                p.p_fecha as fecha,
-                                IFNULL(vp.ve_factura, '') as factura,
-                                a.a_descripcion as area,
-                                IFNULL((SELECT
-                                    area.a_descripcion AS descripcion
-                                    FROM area_secuencia arse
-                                    INNER JOIN area area ON arse.ac_secuencia_area = area.a_codigo
-                                    WHERE arse.ac_area = p.p_area
-                                ), '-') as siguiente_area,
-                                IF(p.p_estado = 1, 'Pendiente', IF(p.p_estado = 2, 'Facturado', 'Todos')) as estado,
-                                p.p_estado as estado_num,
-                                IF(p.p_credito = 1, 'Crédito', 'Contado') as condicion,
-                                op.op_nombre as operador,
-                                ope.op_nombre as vendedor,
-                                dep.dep_descripcion as deposito,
-                                p.p_cantcuotas,
-                                p.p_entrega,
-                                p.p_autorizar_a_contado,
-                                p.p_imprimir as imprimir,
-                                p.p_imprimir_preparacion as imprimir_preparacion,
-                                p.p_cliente as cliente_id,
-                                p.p_cantidad_cajas as cantidad_cajas,
-                                IFNULL(p.p_obs, '') as obs,
-                                FORMAT(ROUND(SUM(dp.dp_cantidad  * (dp.dp_precio - dp.dp_descuento)), 0), 0) as total,
-                                IF(p.p_acuerdo = 1, 'Tiene acuerdo comercial', '') as acuerdo
-                            FROM pedidos p
-                            LEFT JOIN clientes cli ON p.p_cliente = cli.cli_codigo
-                            LEFT JOIN monedas m ON p.p_moneda = m.mo_codigo
-                            LEFT JOIN operadores op ON p.p_operador = op.op_codigo
-                            LEFT JOIN operadores ope ON p.p_vendedor = ope.op_codigo
-                            LEFT JOIN area a ON p.p_area = a.a_codigo
-                            LEFT JOIN depositos dep ON p.p_deposito = dep.dep_codigo
-                            LEFT JOIN ventas vp ON p.p_codigo = vp.ve_pedido
-                            LEFT JOIN detalle_pedido dp ON p.p_codigo = dp.dp_pedido
-                            WHERE " + where + @"
-                            GROUP BY p.p_codigo
-                            ORDER BY p.p_cliente DESC";
 
+            if (limit.HasValue)
+            {
+                limitQuery = " LIMIT @limit";
+                parameters.Add("limit", limit.Value);
+            }
+
+            var query = @"
+    SELECT
+        p.p_codigo AS PedidoId,
+        cli.cli_razon AS Cliente,
+        m.mo_descripcion AS Moneda,
+        p.p_fecha AS Fecha,
+        IFNULL(vp.ve_factura, '') AS Factura,
+        a.a_descripcion AS Area,
+        IFNULL((SELECT
+            area.a_descripcion AS descripcion
+            FROM area_secuencia arse
+            INNER JOIN area area ON arse.ac_secuencia_area = area.a_codigo
+            WHERE arse.ac_area = p.p_area
+        ), '-') AS SiguienteArea,
+        IF(p.p_estado = 1, 'Pendiente', IF(p.p_estado = 2, 'Facturado', 'Todos')) AS Estado,
+        p.p_estado AS EstadoNum,
+        IF(p.p_credito = 1, 'Crédito', 'Contado') AS Condicion,
+        op.op_nombre AS Operador,
+        ope.op_nombre AS Vendedor,
+        dep.dep_descripcion AS Deposito,
+        p.p_cantcuotas AS CantidadCuotas,
+        p.p_entrega AS Entrega,
+        p.p_autorizar_a_contado AS AutorizarAContado,
+        p.p_imprimir AS Imprimir,
+        p.p_imprimir_preparacion AS ImprimirPreparacion,
+        p.p_cliente AS ClienteId,
+        p.p_cantidad_cajas AS CantidadCajas,
+        IFNULL(p.p_obs, '') AS Observaciones,
+        FORMAT(ROUND(COALESCE((
+            SELECT SUM(dp2.dp_cantidad * (dp2.dp_precio - dp2.dp_descuento))
+            FROM detalle_pedido dp2 
+            WHERE dp2.dp_pedido = p.p_codigo
+        ), 0), 0), 0) AS Total,
+        IF(p.p_acuerdo = 1, 'Tiene acuerdo comercial', '') AS Acuerdo
+    FROM pedidos p
+    LEFT JOIN clientes cli ON p.p_cliente = cli.cli_codigo
+    LEFT JOIN monedas m ON p.p_moneda = m.mo_codigo
+    LEFT JOIN operadores op ON p.p_operador = op.op_codigo
+    LEFT JOIN operadores ope ON p.p_vendedor = ope.op_codigo
+    LEFT JOIN area a ON p.p_area = a.a_codigo
+    LEFT JOIN depositos dep ON p.p_deposito = dep.dep_codigo
+    LEFT JOIN ventas vp ON p.p_codigo = vp.ve_pedido
+    WHERE " + where + @"
+    ORDER BY p.p_cliente DESC
+    " + limitQuery;
+
+            Console.WriteLine(query);
 
             return await connection.QueryAsync<PedidoViewModel>(query, parameters);
         }

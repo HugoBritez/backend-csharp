@@ -18,5 +18,10 @@ namespace Api.Repositories.Interfaces{
         Task<Cliente?> GetById(uint id);
 
         Task<ClienteViewModel?> GetClientePorId(uint id);
+
+        Task<decimal> GetDeudaCliente(uint cliente);
+
+        Task<UltimoCobroClienteViewModel?> GetUltimoCobroCliente(uint cliente);
+
     }
 }

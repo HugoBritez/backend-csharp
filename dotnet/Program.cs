@@ -189,6 +189,7 @@ builder.Services.AddScoped<IPacientesRepository, PacientesRepository>();
 builder.Services.AddScoped<IRecordatorioCRMRepository, RecordatorioCRMRepository>();
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IProyectosColaboradoresRepositoryCRM, ProyectosColaboradoresCRMRepository>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerDocument(config =>

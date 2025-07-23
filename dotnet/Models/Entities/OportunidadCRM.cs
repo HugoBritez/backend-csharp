@@ -27,5 +27,7 @@ namespace Api.Models.Entities
         public uint Estado { get; set; }
         [Column("op_general")]
         public int General { get; set; }
+        [Column("op_autorizado_por")]
+        public uint? AutorizadoPor { get; set; }
     }
 }

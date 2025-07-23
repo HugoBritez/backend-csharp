@@ -36,5 +36,6 @@ namespace Api.Repositories.Interfaces
         Task<decimal> ObtenerTotalNotasCreditoSinItems(ParametrosReporte parametros);
         Task<decimal> ObtenerTotalNotasDevolucion(ParametrosReporte parametros);
         Task<IEnumerable<ReporteVentasPorProveedor>> GetReporteVentasPorProveedor(string? fechaDesde, string? fechaHasta, uint? proveedor, uint? cliente);
+        
     }
 }

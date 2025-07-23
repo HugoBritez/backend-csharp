@@ -5,6 +5,7 @@ using Api.Repositories.Interfaces;
 using Api.Services.Interfaces;
 using Api.Services.Mappers;
 using Api.Audit.Services;
+using Api.Models.ViewModels;
 namespace Api.Services.Implementations
 {
     public class VentaService : IVentaService
@@ -19,7 +20,7 @@ namespace Api.Services.Implementations
         private readonly IAuditoriaService _auditoriaService;
         private readonly ICotizacionRepository _cotizacionRepository;
         private readonly IMetasService _metasService;
-
+        private readonly IClienteRepository _clienteRepository;
         public VentaService(IVentaRepository ventaRepository,
             IDetalleVentaRepository detalleVentaRepository,
             IDetalleBonificacionRepository detalleBonificacionRepository,
@@ -29,7 +30,8 @@ namespace Api.Services.Implementations
             IContabilidadService contabilidadService,
             IAuditoriaService auditoriaService,
             ICotizacionRepository cotizacionRepository,
-            IMetasService metasService
+            IMetasService metasService,
+            IClienteRepository clienteRepository
         )
         {
             _ventaRepository = ventaRepository;
@@ -42,6 +44,7 @@ namespace Api.Services.Implementations
             _auditoriaService = auditoriaService;
             _cotizacionRepository = cotizacionRepository;
             _metasService = metasService;
+            _clienteRepository = clienteRepository;
         }
         public async Task<Venta> CrearVenta(VentaDTO venta, IEnumerable<DetalleVentaDTO> detalleVentaDTOs)
         {
@@ -192,10 +195,13 @@ namespace Api.Services.Implementations
                 parametros.CantidadAnios = 3;
             }
 
+            // Cambiar la lógica: empezar desde el año más antiguo y subir
+            var anioInicio = parametros.AnioInicio - parametros.CantidadAnios + 1;
+            
             // Obtener datos para los años especificados
             for (int i = 0; i < parametros.CantidadAnios; i++)
             {
-                var anioActual = parametros.AnioInicio - i;
+                var anioActual = anioInicio + i; // Ahora suma en lugar de restar
                 var parametrosAnio = new ParametrosReporte
                 {
                     AnioInicio = anioActual,
@@ -226,7 +232,6 @@ namespace Api.Services.Implementations
                         {
                             CodigoArticulo = venta.CodigoArticulo,
                             Descripcion = venta.Descripcion,
-                            CodigoBarras = venta.CodigoBarras,
                             Stock = venta.Stock,
                             Costo = venta.Costo,
                             PrecioVenta1 = venta.PrecioVenta1,
@@ -236,37 +241,39 @@ namespace Api.Services.Implementations
                     }
 
                     var detalle = detalles[venta.CodigoArticulo];
+                    
+                    // Ahora i=0 es el año más antiguo, i=1 es el siguiente, etc.
                     switch (i)
                     {
-                        case 0:
+                        case 0: // Año más antiguo (Año 1 para los usuarios)
                             detalle.CantidadAnio1 = venta.Cantidad;
                             detalle.ImporteAnio1 = venta.Importe;
                             reporte.Totales.TotalCantidadAnio1 += venta.Cantidad;
                             reporte.Totales.TotalImporteAnio1 += venta.Importe;
                             reporte.Totales.TotalNotasCreditoAnio1 = totalNotasCredito + totalNotasCreditoSinItems + totalNotasDevolucion;
                             break;
-                        case 1:
+                        case 1: // Segundo año más antiguo (Año 2 para los usuarios)
                             detalle.CantidadAnio2 = venta.Cantidad;
                             detalle.ImporteAnio2 = venta.Importe;
                             reporte.Totales.TotalCantidadAnio2 += venta.Cantidad;
                             reporte.Totales.TotalImporteAnio2 += venta.Importe;
                             reporte.Totales.TotalNotasCreditoAnio2 = totalNotasCredito + totalNotasCreditoSinItems + totalNotasDevolucion;
                             break;
-                        case 2:
+                        case 2: // Tercer año más antiguo (Año 3 para los usuarios)
                             detalle.CantidadAnio3 = venta.Cantidad;
                             detalle.ImporteAnio3 = venta.Importe;
                             reporte.Totales.TotalCantidadAnio3 += venta.Cantidad;
                             reporte.Totales.TotalImporteAnio3 += venta.Importe;
                             reporte.Totales.TotalNotasCreditoAnio3 = totalNotasCredito + totalNotasCreditoSinItems + totalNotasDevolucion;
                             break;
-                        case 3:
+                        case 3: // Cuarto año más antiguo (Año 4 para los usuarios)
                             detalle.CantidadAnio4 = venta.Cantidad;
                             detalle.ImporteAnio4 = venta.Importe;
                             reporte.Totales.TotalCantidadAnio4 += venta.Cantidad;
                             reporte.Totales.TotalImporteAnio4 += venta.Importe;
                             reporte.Totales.TotalNotasCreditoAnio4 = totalNotasCredito + totalNotasCreditoSinItems + totalNotasDevolucion;
                             break;
-                        case 4:
+                        case 4: // Quinto año más antiguo (Año 5 para los usuarios)
                             detalle.CantidadAnio5 = venta.Cantidad;
                             detalle.ImporteAnio5 = venta.Importe;
                             reporte.Totales.TotalCantidadAnio5 += venta.Cantidad;
@@ -339,9 +346,9 @@ namespace Api.Services.Implementations
                 }
                 else
                 {
-                    // Si no hay rango de fechas, usar el año 1 completo
-                    detalle.UnidadesVendidas = detalle.CantidadAnio1;
-                    detalle.ImporteTotal = detalle.ImporteAnio1;
+                    // Si no hay rango de fechas, usar el año más reciente (último año del rango)
+                    detalle.UnidadesVendidas = detalle.CantidadAnio3; // Cambiar según la cantidad de años
+                    detalle.ImporteTotal = detalle.ImporteAnio3; // Cambiar según la cantidad de años
                     detalle.VentaTotal = detalle.MetaAcordada * detalle.PrecioVenta1;
                 }
 
@@ -354,6 +361,27 @@ namespace Api.Services.Implementations
 
             reporte.Detalles = [.. detalles.Values];
             return reporte;
+        }
+
+        public async Task<IEnumerable<VentaViewModel>> GetVentasPorCliente(string clienteRuc)
+        {
+            var cliente = await _clienteRepository.GetByRuc(clienteRuc) ?? throw new Exception("Cliente no encontrado");
+            var ventas = await _ventaRepository.ConsultaVentas(
+                null, // fecha_desde 
+                null, // fecha_hasta
+                null, // sucursal
+                cliente.Codigo, // cliente
+                null, // vendedor
+                null, // articulo
+                null, // moneda
+                null, // factura
+                null, // venta
+                null, // estadoVenta
+                null, // remisiones
+                null, // listaFacturasSinCDC
+                null, // page
+                3); // itemsPorPagina
+            return ventas;
         }
 
     }
