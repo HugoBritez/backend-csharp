@@ -43,7 +43,12 @@ namespace Storage
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentException("La ruta del archivo no puede estar vacía");
 
-            var normalizedPath = path.Replace("/", "\\");
+            // Normalizar el path para que sea consistente
+            var pathParts = path.Split('/', '\\');
+            var normalizedPathParts = pathParts.Select((part, index) => 
+                index == 0 ? part : part.ToLowerInvariant()).ToArray();
+            
+            var normalizedPath = string.Join(Path.DirectorySeparatorChar, normalizedPathParts);
             var filePath = Path.Combine(basePath, normalizedPath);
 
             if (!File.Exists(filePath))
