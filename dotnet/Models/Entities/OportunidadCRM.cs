@@ -29,5 +29,7 @@ namespace Api.Models.Entities
         public int General { get; set; }
         [Column("op_autorizado_por")]
         public uint? AutorizadoPor { get; set; }
+        [Column("op_archivado")]
+        public int? Archivado { get; set; }
     }
 }

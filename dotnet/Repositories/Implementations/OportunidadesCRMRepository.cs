@@ -70,7 +70,8 @@ namespace Api.Repositories.Implementations
             if (oportunidad.General != 0)
                 oportunidadExistente.General = oportunidad.General;
 
-            
+            if (oportunidad.Archivado.HasValue && oportunidad.Archivado != 0)
+                oportunidadExistente.Archivado = 1;
 
             // Marcar la entidad como modificada
             _context.Oportunidades.Update(oportunidadExistente);
@@ -145,6 +146,7 @@ namespace Api.Repositories.Implementations
                         // Left join para Cargo usando una condición más segura
                         join cargo in _context.Cargos on new { OpCargo = (int?)autorizadoPor.OpCargo } equals new { OpCargo = (int?)cargo.Codigo } into cargoJoin
                         from cargo in cargoJoin.DefaultIfEmpty()
+                        where oportunidad.Archivado == 0
                         select new OportunidadViewModel
                         {
                             Codigo = oportunidad.Codigo,
@@ -186,7 +188,7 @@ namespace Api.Repositories.Implementations
                         join clienteEntity in _context.ContactosCRM on oportunidad.Cliente equals clienteEntity.Codigo
                         join operador in _context.Operadores on (int)oportunidad.Operador equals operador.OpCodigo
                         join estado in _context.EstadoCRM on oportunidad.Estado equals estado.Id
-                        where oportunidad.Cliente == cliente
+                        where oportunidad.Cliente == cliente && oportunidad.Archivado == 0
                         // Left join para AutorizadoPor, ya que puede ser null
                         join autorizadoPorEntity in _context.Operadores on (int?)oportunidad.AutorizadoPor equals autorizadoPorEntity.OpCodigo into autorizadoPorJoin
                         from autorizadoPor in autorizadoPorJoin.DefaultIfEmpty()
@@ -222,7 +224,7 @@ namespace Api.Repositories.Implementations
                         join cliente in _context.ContactosCRM on oportunidad.Cliente equals cliente.Codigo
                         join operadorEntity in _context.Operadores on (int)oportunidad.Operador equals operadorEntity.OpCodigo
                         join estado in _context.EstadoCRM on oportunidad.Estado equals estado.Id
-                        where oportunidad.Operador == operador
+                        where oportunidad.Operador == operador && oportunidad.Archivado == 0
                         // Left join para AutorizadoPor, ya que puede ser null
                         join autorizadoPorEntity in _context.Operadores on (int?)oportunidad.AutorizadoPor equals autorizadoPorEntity.OpCodigo into autorizadoPorJoin
                         from autorizadoPor in autorizadoPorJoin.DefaultIfEmpty()

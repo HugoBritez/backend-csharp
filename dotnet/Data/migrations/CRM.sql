@@ -183,5 +183,7 @@ alter table oportunidades_crm add column op_autorizado_por int unsigned DEFAULT 
 alter table oportunidades_crm add CONSTRAINT fk_oportunidades_crm_autorizado_por
 FOREIGN KEY (op_autorizado_por) REFERENCES operadores (op_codigo);
 
+alter table oportunidades_crm add column op_archivado int unsigned not null DEFAULT 0;
+
 
 
