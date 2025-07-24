@@ -10,15 +10,18 @@ namespace Api.Services.Implementations
         private readonly IDetallePresupuestoRepository _detallePresupuestoRepository;
         private readonly IPresupuestoObservacionRepository _presupuestoObservacionRepository;
 
+        private readonly IClienteRepository _clientesRepository;
         public PresupuestoService(
             IPresupuestosRepository presu,
             IDetallePresupuestoRepository detalle,
-            IPresupuestoObservacionRepository presuObs
+            IPresupuestoObservacionRepository presuObs,
+            IClienteRepository clientesRepository
             )
         {
             _presupuestoRepository = presu;
             _detallePresupuestoRepository = detalle;
             _presupuestoObservacionRepository = presuObs;
+            _clientesRepository = clientesRepository;
         }
 
         public async Task<ResponseViewModel<Presupuesto>> CrearPresupuesto(Presupuesto presupuesto, PresupuestoObservacion observacion, IEnumerable<DetallePresupuesto> detalle)
@@ -81,6 +84,27 @@ namespace Api.Services.Implementations
                 Presupuesto = presupuesto,
                 Detalles = detalles
             };
+        }
+
+        public async Task<IEnumerable<PresupuestoViewModel>> GetPresupuestoPorCliente(string clienteRuc)
+        {
+            var cliente = await _clientesRepository.GetByRuc(clienteRuc);
+            if(cliente == null)
+            {
+                throw new Exception("Cliente no encontrado");
+            }
+            var presupuestos = await _presupuestoRepository.GetTodos(
+                null,
+                null,
+                null,
+                cliente.Codigo,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
+            return presupuestos;
         }
     }
 }

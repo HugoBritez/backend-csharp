@@ -9,6 +9,7 @@ using Storage;
 using Microsoft.AspNetCore.Http;
 using System.Security.Cryptography;
 using Api.Models.Dtos.CRM;
+using Api.Models.Dtos;
 
 namespace Api.Controllers
 {
@@ -179,10 +180,17 @@ namespace Api.Controllers
             return Ok(estados);
         }
 
+        
+
         [HttpPut("estados/{codigo}")]
-        public async Task<ActionResult<EstadoCRM>> UpdateDescripcion(uint codigo, [FromBody] string descripcion)
+        public async Task<ActionResult<EstadoCRM>> UpdateDescripcion(uint codigo, [FromBody] UpdateEstadoDescripcionDTO request)
         {
-            var estado = await _estadoCRMRepository.UpdateDescripcion(codigo, descripcion);
+
+            if( request.Descripcion == null)
+            {
+                return BadRequest("La descripción no puede ser nula");
+            }
+            var estado = await _estadoCRMRepository.UpdateDescripcion(codigo, request.Descripcion);
             return Ok(estado);
         }
 

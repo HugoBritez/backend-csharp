@@ -8,5 +8,7 @@ namespace Api.Services.Interfaces
     {
         Task<ResponseViewModel<Presupuesto>> CrearPresupuesto(Presupuesto venta, PresupuestoObservacion observacion, IEnumerable<DetallePresupuesto> detalleVenta);
         Task<RecuperarPresupuestoViewModel> RecuperarPresupuesto(uint idPresupuesto);
+
+        Task<IEnumerable<PresupuestoViewModel>> GetPresupuestoPorCliente(string clienteRuc);
     }
 }

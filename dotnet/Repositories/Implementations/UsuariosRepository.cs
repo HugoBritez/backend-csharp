@@ -31,7 +31,7 @@ namespace Api.Repositories.Implementations
             if (!string.IsNullOrEmpty(busqueda))
             {
                 where += " AND (op.op_nombre LIKE @busqueda OR op.op_documento LIKE @busqueda) LIMIT 10";
-                parameters.Add("busqueda", $"{busqueda}");
+                parameters.Add("busqueda", $"%{busqueda}%");
             }
             else if (id.HasValue)
             {

@@ -86,5 +86,12 @@ namespace Api.Controllers
             return Ok(presupuestoCreado);
         }
 
+        [HttpGet("cliente/{clienteRuc}")]
+        public async Task<ActionResult<IEnumerable<PresupuestoViewModel>>> GetPresupuestoPorCliente([FromRoute] string clienteRuc)
+        {
+            var presupuestos = await _presupuestoService.GetPresupuestoPorCliente(clienteRuc);
+            return Ok(presupuestos);
+        }
+
     }
 }
