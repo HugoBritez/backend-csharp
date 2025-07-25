@@ -16,6 +16,7 @@ using Dapper;
 using Api.Models.ViewModels;
 using Serilog;
 using Storage;
+using Api.Models.Email;
 
 // Cargar archivo específico según entorno
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
@@ -190,6 +191,14 @@ builder.Services.AddScoped<IRecordatorioCRMRepository, RecordatorioCRMRepository
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IProyectosColaboradoresRepositoryCRM, ProyectosColaboradoresCRMRepository>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
+
+// Configurar EmailService
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Registrar el servicio de notificaciones como BackgroundService
+builder.Services.AddHostedService<NotificationServices>();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerDocument(config =>

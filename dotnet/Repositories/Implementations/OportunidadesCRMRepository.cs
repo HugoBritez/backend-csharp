@@ -146,6 +146,9 @@ namespace Api.Repositories.Implementations
                         // Left join para Cargo usando una condición más segura
                         join cargo in _context.Cargos on new { OpCargo = (int?)autorizadoPor.OpCargo } equals new { OpCargo = (int?)cargo.Codigo } into cargoJoin
                         from cargo in cargoJoin.DefaultIfEmpty()
+                        // Obtener cargo por separado usando una subconsulta
+                        join cargoOperador in _context.Cargos on new { OpCargo = (int?)operador.OpCargo } equals new { OpCargo = (int?)cargoOperador.Codigo } into cargoOperadorJoin
+                        from cargoOperador in cargoOperadorJoin.DefaultIfEmpty()
                         where oportunidad.Archivado == 0
                         select new OportunidadViewModel
                         {
@@ -161,6 +164,7 @@ namespace Api.Repositories.Implementations
                             General = oportunidad.General,
                             ClienteNombre = cliente.Nombre,
                             OperadorNombre = operador.OpNombre,
+                            OperadorCargo = cargoOperador != null ? cargoOperador.Descripcion : null,
                             EstadoDescripcion = estado.Descripcion,
                             ClienteRuc = cliente.Ruc,
                             AutorizadoPor = oportunidad.AutorizadoPor,

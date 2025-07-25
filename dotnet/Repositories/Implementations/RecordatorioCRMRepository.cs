@@ -63,7 +63,6 @@ namespace Api.Repositories.Implementations
             return await query.FirstOrDefaultAsync();
         }
 
-
         public async Task<RecordatorioCRM> Create(RecordatorioCRM recordatorio)
         {
             _context.RecordatoriosCRM.Add(recordatorio);
@@ -76,6 +75,25 @@ namespace Api.Repositories.Implementations
             _context.RecordatoriosCRM.Update(recordatorio);
             await _context.SaveChangesAsync();
             return recordatorio;
+        }
+
+        public async Task<bool> MarcarComoEnviado(uint id)
+        {
+            try
+            {
+                var recordatorio = await _context.RecordatoriosCRM.FindAsync(id);
+                if (recordatorio != null)
+                {
+                    recordatorio.Enviado = 1; // Marcar como enviado
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

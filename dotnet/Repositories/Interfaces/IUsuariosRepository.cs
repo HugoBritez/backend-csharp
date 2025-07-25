@@ -7,5 +7,7 @@ namespace Api.Repositories.Interfaces{
         Task<IEnumerable<UsuarioViewModel>> GetUsuarios(string? busqueda, uint? id, uint? rol);
 
         Task<Operador> CrearOperador(Operador data);
+
+        Task<Operador?> GetOperadorById(uint id);
     }
 }

@@ -63,8 +63,8 @@ namespace Api.Models.Entities
         [Column("op_tipo_vendedor")]
         public int OpTipoVendedor { get; set; }
 
-        [Column("op_vendedor_actividad")]
-        public int OpVendedorActividad { get; set; }
+        [Column("op_verificador_actividad")]
+        public int OpVerificadorActividad { get; set; }
 
         [Column("op_autorizar")]
         public int OpAutorizar { get; set;}

@@ -1,12 +1,30 @@
 using System.Security.Cryptography;
+using System.Web;
 
 namespace Storage
 {
     public class FileStorageService : IFileStorageService
     {
-        private readonly string basePath = Path.Combine(Directory.GetCurrentDirectory(), "files");
+        private readonly string basePath;
         private readonly long maxFileSize = 100 * 1024 * 1024; // 100MB
         private readonly string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" };
+
+        public FileStorageService()
+        {
+            basePath = Path.Combine(Directory.GetCurrentDirectory(), "files");
+            Console.WriteLine($"FileStorageService: basePath = {basePath}");
+            Console.WriteLine($"FileStorageService: Directory.GetCurrentDirectory() = {Directory.GetCurrentDirectory()}");
+            
+            // Verificar si el directorio existe
+            if (!Directory.Exists(basePath))
+            {
+                Console.WriteLine($"FileStorageService: WARNING - El directorio basePath no existe: {basePath}");
+            }
+            else
+            {
+                Console.WriteLine($"FileStorageService: El directorio basePath existe: {basePath}");
+            }
+        }
 
         public async Task<string> SaveFileAsync(Stream file, string fileName, string folder)
         {
@@ -43,16 +61,30 @@ namespace Storage
             if (string.IsNullOrEmpty(path))
                 throw new ArgumentException("La ruta del archivo no puede estar vacía");
 
+            Console.WriteLine($"GetFileAsync: path original = {path}");
+
+            // Decodificar la URL para manejar espacios y caracteres especiales
+            var decodedPath = HttpUtility.UrlDecode(path);
+            Console.WriteLine($"GetFileAsync: path decodificado = {decodedPath}");
+
             // Normalizar el path para que sea consistente
-            var pathParts = path.Split('/', '\\');
-            var normalizedPathParts = pathParts.Select((part, index) => 
-                index == 0 ? part : part.ToLowerInvariant()).ToArray();
+            var pathParts = decodedPath.Split('/', '\\');
+            var normalizedPathParts = pathParts.Select(part => part.ToLowerInvariant()).ToArray();
             
             var normalizedPath = string.Join(Path.DirectorySeparatorChar, normalizedPathParts);
             var filePath = Path.Combine(basePath, normalizedPath);
 
+            Console.WriteLine($"GetFileAsync: basePath = {basePath}");
+            Console.WriteLine($"GetFileAsync: normalizedPath = {normalizedPath}");
+            Console.WriteLine($"GetFileAsync: filePath completo = {filePath}");
+
             if (!File.Exists(filePath))
+            {
+                Console.WriteLine($"GetFileAsync: ERROR - Archivo no encontrado en: {filePath}");
                 throw new FileNotFoundException("Archivo no encontrado", filePath);
+            }
+
+            Console.WriteLine($"GetFileAsync: Archivo encontrado en: {filePath}");
 
             // Para archivos pequeños, usar MemoryStream
             var fileInfo = new FileInfo(filePath);
@@ -74,7 +106,13 @@ namespace Storage
             if (string.IsNullOrEmpty(path))
                 return Task.CompletedTask;
 
-            var normalizedPath = path.Replace("/", "\\");
+            // Decodificar la URL para manejar espacios y caracteres especiales
+            var decodedPath = HttpUtility.UrlDecode(path);
+
+            // Normalizar el path para que sea consistente - convertir todo a minúsculas
+            var pathParts = decodedPath.Split('/', '\\');
+            var normalizedPathParts = pathParts.Select(part => part.ToLowerInvariant()).ToArray();
+            var normalizedPath = string.Join(Path.DirectorySeparatorChar, normalizedPathParts);
             var filePath = Path.Combine(basePath, normalizedPath);
             
             if (File.Exists(filePath))

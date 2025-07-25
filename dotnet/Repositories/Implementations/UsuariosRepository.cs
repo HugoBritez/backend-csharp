@@ -55,5 +55,12 @@ namespace Api.Repositories.Implementations
             " + where;
             return await connection.QueryAsync<UsuarioViewModel>(query, parameters);
         }
+
+
+        public async Task<Operador?> GetOperadorById(uint id)
+        {
+            var operador = await _context.Operadores.FindAsync((int)id);
+            return operador;
+        }
     }
 }

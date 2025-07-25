@@ -185,5 +185,7 @@ FOREIGN KEY (op_autorizado_por) REFERENCES operadores (op_codigo);
 
 alter table oportunidades_crm add column op_archivado int unsigned not null DEFAULT 0;
 
+ALTER TABLE recordatorios_crm ADD column re_enviado INT UNSIGNED    NOT NULL DEFAULT 0;
+
 
 

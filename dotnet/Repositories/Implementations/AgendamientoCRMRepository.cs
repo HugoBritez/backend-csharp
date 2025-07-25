@@ -1,5 +1,6 @@
 using Api.Data;
 using Api.Models.Entities;
+using Api.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Repositories.Implementations
@@ -12,6 +13,31 @@ namespace Api.Repositories.Implementations
         public async Task<IEnumerable<AgendamientoCRM>> GetAll()
         {
             return await _context.AgendamientosCRM.ToListAsync();
+        }
+
+        public async Task<IEnumerable<AgendamientosCRMViewModel>> GetAllComplete()
+        {
+            var query = from agendamiento in _context.AgendamientosCRM
+                        join paciente in _context.Pacientes on agendamiento.Paciente equals paciente.Codigo
+                        join doctor in _context.Doctores on agendamiento.Doctor equals doctor.Codigo
+                        select new AgendamientosCRMViewModel
+                        {
+                            Codigo = agendamiento.Codigo,
+                            FechaInicio = agendamiento.FechaInicio,
+                            FechaAgendamiento = agendamiento.FechaAgendamiento,
+                            HoraAgendamiento = agendamiento.HoraAgendamiento,
+                            Titulo = agendamiento.Titulo,
+                            Descripcion = agendamiento.Descripcion,
+                            PacienteNombre = paciente.Nombres + " " + paciente.Apellidos,
+                            DoctorNombre = doctor.Nombres + " " + doctor.Apellidos,
+                            Paciente = agendamiento.Paciente,
+                            Doctor = agendamiento.Doctor,
+                            Cliente = agendamiento.Cliente,
+                            Operador = agendamiento.Operador,
+                            Estado = agendamiento.Estado,
+                        };
+
+            return await query.ToListAsync();
         }
 
         public async Task<IEnumerable<AgendamientoCRM>> GetByOperador(uint operador)

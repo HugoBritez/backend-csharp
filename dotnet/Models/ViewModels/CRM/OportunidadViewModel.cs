@@ -7,6 +7,7 @@ namespace Api.Models.ViewModels
     {
         public string? ClienteNombre { get; set; }
         public string? OperadorNombre { get; set; }
+        public string? OperadorCargo { get; set; }
         public string? EstadoDescripcion { get; set; }
         public string? ClienteRuc { get; set; }
         public IEnumerable<ColaboradoresViewModel> Colaboradores { get; set; } = [];

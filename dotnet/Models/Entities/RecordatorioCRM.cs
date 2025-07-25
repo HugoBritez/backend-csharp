@@ -27,5 +27,7 @@ namespace Api.Models.Entities
         public int Estado { get; set;}
         [Column("re_tipo_recordatorio")]
         public uint TipoRecordatorio { get; set;}
+        [Column("re_enviado")]
+        public int Enviado { get; set;} = 0;
     }
 }

@@ -9,6 +9,6 @@ namespace Api.Repositories.Interfaces
         Task<RecordatorioCRMViewModel?> GetById(uint id);
         Task<RecordatorioCRM> Create(RecordatorioCRM recordatorio);
         Task<RecordatorioCRM> Update(RecordatorioCRM recordatorio);
-
+        Task<bool> MarcarComoEnviado(uint id);
     }
 }

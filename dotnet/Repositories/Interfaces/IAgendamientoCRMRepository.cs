@@ -1,4 +1,5 @@
 using Api.Models.Entities;
+using Api.Models.ViewModels;
 
 namespace Api.Repositories.Implementations
 {
@@ -9,5 +10,7 @@ namespace Api.Repositories.Implementations
         Task<IEnumerable<AgendamientoCRM>> GetByDoctor(uint doctor);
         Task<AgendamientoCRM?> GetById(uint id);
         Task<AgendamientoCRM> Create(AgendamientoCRM agendamiento);
-        Task<AgendamientoCRM> Update(AgendamientoCRM agendamiento);    }
+        Task<AgendamientoCRM> Update(AgendamientoCRM agendamiento);    
+        Task<IEnumerable<AgendamientosCRMViewModel>> GetAllComplete();     
+    }
 }

@@ -25,7 +25,9 @@ namespace Api.Controllers
         private readonly IFileStorageService _fileStorageService;
         private readonly IProyectosColaboradoresRepositoryCRM _proyectosColaboradoresRepository;
 
-        public CRMController(ICRMService crmService, IEstadoCRMRepository estadoCRMRepository, IAgendamientoCRMRepository agendamientoCRMRepository, IRecordatorioCRMRepository recordatorioCRMRepository, IFileStorageService fileStorageService, IProyectosColaboradoresRepositoryCRM proyectosColaboradoresRepository)
+        private readonly IEmailService _emailService;
+
+        public CRMController(ICRMService crmService, IEstadoCRMRepository estadoCRMRepository, IAgendamientoCRMRepository agendamientoCRMRepository, IRecordatorioCRMRepository recordatorioCRMRepository, IFileStorageService fileStorageService, IProyectosColaboradoresRepositoryCRM proyectosColaboradoresRepository, IEmailService emailService    )
         {
             _crmService = crmService;
             _estadoCRMRepository = estadoCRMRepository;
@@ -33,6 +35,7 @@ namespace Api.Controllers
             _recordatorioCRMRepository = recordatorioCRMRepository;
             _fileStorageService = fileStorageService;
             _proyectosColaboradoresRepository = proyectosColaboradoresRepository;
+            _emailService = emailService;
         }
 
         // Endpoints para Contactos
@@ -196,9 +199,9 @@ namespace Api.Controllers
 
         // Endpoints para Agendamientos
         [HttpGet("agendamientos")]
-        public async Task<ActionResult<IEnumerable<AgendamientoCRM>>> GetAgendamientos()
+        public async Task<ActionResult<IEnumerable<AgendamientosCRMViewModel>>> GetAgendamientos()
         {
-            var agendamientos = await _agendamientoCRMRepository.GetAll();
+            var agendamientos = await _agendamientoCRMRepository.GetAllComplete();
             return Ok(agendamientos);
         }
 
