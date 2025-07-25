@@ -67,9 +67,23 @@ namespace Storage
             var decodedPath = HttpUtility.UrlDecode(path);
             Console.WriteLine($"GetFileAsync: path decodificado = {decodedPath}");
 
-            // Normalizar el path para que sea consistente
+            // Normalizar el path: solo las carpetas a minúsculas, el nombre del archivo se mantiene original
             var pathParts = decodedPath.Split('/', '\\');
-            var normalizedPathParts = pathParts.Select(part => part.ToLowerInvariant()).ToArray();
+            var normalizedPathParts = new string[pathParts.Length];
+            
+            for (int i = 0; i < pathParts.Length; i++)
+            {
+                if (i == pathParts.Length - 1)
+                {
+                    // El último elemento es el nombre del archivo, mantenerlo original
+                    normalizedPathParts[i] = pathParts[i];
+                }
+                else
+                {
+                    // Los demás elementos son carpetas, convertir a minúsculas
+                    normalizedPathParts[i] = pathParts[i].ToLowerInvariant();
+                }
+            }
             
             var normalizedPath = string.Join(Path.DirectorySeparatorChar, normalizedPathParts);
             var filePath = Path.Combine(basePath, normalizedPath);
@@ -109,9 +123,24 @@ namespace Storage
             // Decodificar la URL para manejar espacios y caracteres especiales
             var decodedPath = HttpUtility.UrlDecode(path);
 
-            // Normalizar el path para que sea consistente - convertir todo a minúsculas
+            // Normalizar el path: solo las carpetas a minúsculas, el nombre del archivo se mantiene original
             var pathParts = decodedPath.Split('/', '\\');
-            var normalizedPathParts = pathParts.Select(part => part.ToLowerInvariant()).ToArray();
+            var normalizedPathParts = new string[pathParts.Length];
+            
+            for (int i = 0; i < pathParts.Length; i++)
+            {
+                if (i == pathParts.Length - 1)
+                {
+                    // El último elemento es el nombre del archivo, mantenerlo original
+                    normalizedPathParts[i] = pathParts[i];
+                }
+                else
+                {
+                    // Los demás elementos son carpetas, convertir a minúsculas
+                    normalizedPathParts[i] = pathParts[i].ToLowerInvariant();
+                }
+            }
+            
             var normalizedPath = string.Join(Path.DirectorySeparatorChar, normalizedPathParts);
             var filePath = Path.Combine(basePath, normalizedPath);
             
