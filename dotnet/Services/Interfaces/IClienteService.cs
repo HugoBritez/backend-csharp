@@ -7,5 +7,7 @@ namespace Api.Services.Interfaces
         Task<UltimoCobroClienteViewModel?> GetUltimoCobroCliente(string clienteRuc);
 
         Task<decimal> GetDeudaCliente(string clienteRuc);
+
+        Task<ClienteViewModel?> GetClienteViewModelByRuc(string clienteRuc);
     }
 }

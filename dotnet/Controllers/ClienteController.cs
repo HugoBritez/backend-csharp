@@ -45,6 +45,13 @@ namespace Api.Controllers
             return Ok(cliente);
         }
 
+        [HttpGet("{clienteRuc}")]
+        public async Task<ActionResult<ClienteViewModel>> GetClienteByRuc(string clienteRuc)
+        {
+            var cliente = await _clienteService.GetClienteViewModelByRuc(clienteRuc);
+            return Ok(cliente);
+        }
+
         [HttpGet("defecto")]
         public async Task<ActionResult<ClienteViewModel>> GetClienteDefecto()
         {
@@ -65,5 +72,7 @@ namespace Api.Controllers
             var deuda = await _clienteService.GetDeudaCliente(clienteRuc);
             return Ok(deuda);
         }
+
+
     }
 }

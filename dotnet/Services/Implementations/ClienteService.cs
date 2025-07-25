@@ -21,5 +21,14 @@ namespace Api.Services.Implementations
             var deuda = await _clienteRepository.GetDeudaCliente(cliente.Codigo);
             return deuda;
         }
+
+
+        public async Task<ClienteViewModel?> GetClienteViewModelByRuc(string clienteRuc)
+        {
+            var cliente = await _clienteRepository.GetByRuc(clienteRuc) ?? throw new Exception("Cliente no encontrado");
+
+            var clienteFinal = await _clienteRepository.GetClientePorId(cliente.Codigo);
+            return clienteFinal;
+        }
     }
 }
