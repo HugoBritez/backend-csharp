@@ -25,5 +25,8 @@ namespace Api.Repositories.Interfaces
 
         Task<IEnumerable<OportunidadViewModel>> GetOportunidadesCompletasByOperador(uint operador);
 
+
+        Task<IEnumerable<OportunidadViewModel>> GetOportunidadesArchivadas(DateTime? fechaInicio = null, DateTime? fechaFin = null);
+
     }
 }

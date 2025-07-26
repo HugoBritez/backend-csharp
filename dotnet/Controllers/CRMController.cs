@@ -117,6 +117,16 @@ namespace Api.Controllers
             return Ok(oportunidadActualizada);
         }
 
+        [HttpGet("oportunidades/archivadas")]
+        public async Task<ActionResult<IEnumerable<OportunidadViewModel>>> GetOportunidadesArchivadas(
+            [FromQuery(Name = "fechaDesde")] DateTime? fechaInicio,
+            [FromQuery(Name = "fechaHasta")] DateTime? fechaFin
+        )
+        {
+            var oportunidades = await _crmService.GetOportunidadesArchivadas(fechaInicio, fechaFin);
+            return Ok(oportunidades);
+        }
+
         // Endpoints para Tareas
         [HttpGet("tareas")]
         public async Task<ActionResult<IEnumerable<TareaCRM>>> GetTareas()

@@ -219,6 +219,12 @@ namespace Api.Services.Implementations
                 throw;
             }
         }
+
+        public async Task<IEnumerable<OportunidadViewModel>> GetOportunidadesArchivadas(DateTime? fechaInicio = null, DateTime? fechaFin = null)
+        {
+            return await _oportunidadesCRMRepository.GetOportunidadesArchivadas(fechaInicio, fechaFin);
+        }
+
         #endregion
 
         #region Tareas

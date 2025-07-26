@@ -44,5 +44,7 @@ namespace Api.Services.Interfaces
         Task<IEnumerable<TipoTareaCRM>> GetTiposTareas();
 
         Task<IEnumerable<ProyectosColaboradoresCRM>> CreateColaborador(uint proyecto, IEnumerable<uint> colaboradores);
+
+        Task<IEnumerable<OportunidadViewModel>> GetOportunidadesArchivadas(DateTime? fechaInicio = null, DateTime? fechaFin = null);
     }
 }
