@@ -68,7 +68,6 @@ function asignarToken(data){
         op_nombre: data.op_nombre,
         op_sucursal: data.op_sucursal,
         or_rol: data.or_rol,
-        // Agregar otros campos que necesites
     };
     
     console.log(`[AUTH] Payload del token:`, payload);
