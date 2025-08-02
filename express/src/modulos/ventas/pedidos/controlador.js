@@ -867,6 +867,7 @@ module.exports = function (dbInyectada) {
         dep.dep_descripcion as deposito,
         suc.descripcion as sucursal,
         cli.cli_razon as cliente,
+        op.op_nombre as vendedor,
         JSON_ARRAYAGG(
           JSON_OBJECT(
             'cod_interno', ar.ar_cod_interno,
@@ -890,6 +891,7 @@ module.exports = function (dbInyectada) {
         LEFT JOIN sub_ubicacion su ON ar.ar_sububicacion = su.s_codigo
         INNER JOIN depositos dep ON p.p_deposito = dep.dep_codigo
         INNER JOIN sucursales suc ON p.p_sucursal = suc.id
+        INNER JOIN operadores op ON p.p_vendedor = op.op_codigo
       WHERE
         ${where}
       GROUP BY p.p_codigo, p.p_fecha, dep.dep_descripcion, suc.descripcion, cli.cli_razon

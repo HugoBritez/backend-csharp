@@ -188,4 +188,17 @@ alter table oportunidades_crm add column op_archivado int unsigned not null DEFA
 ALTER TABLE recordatorios_crm ADD column re_enviado INT UNSIGNED    NOT NULL DEFAULT 0;
 
 
+-- Tablas para configurar la integracion con la api de Meta --
+
+CREATE TABLE configuraciones_meta_crm (
+    conf_codigo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    conf_access_token VARCHAR(255) NULL,
+    conf_verify_token VARCHAR(255) NULL,
+    conf_estado INT NOT NULL DEFAULT 1
+)
+
+INSERT INTO configuraciones_meta_crm (conf_codigo, conf_access_token, conf_verify_token, conf_estado) VALUES
+(1, null, 'Sofmarsistema170520061968', 1); -- el verify token es siempre constante, el access token si varia por cliente
+
+
 
