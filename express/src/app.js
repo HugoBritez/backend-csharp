@@ -117,7 +117,8 @@ app.use(
         "https://webapp.gaesa.com.py",
         "https://webapp.caofa.com.py",
         "https://medical.sofmar.com.py",
-        "https://sofmareas.sofmar.com.py"
+        "https://sofmareas.sofmar.com.py",
+        "https://*.sofmar.com.py"
       ];
       
       // En desarrollo, permitir también conexiones HTTP locales
@@ -152,7 +153,8 @@ let corsOptions = {
     "https://webapp.gaesa.com.py",
     "https://webapp.caofa.com.py",
     "https://medical.sofmar.com.py",
-    "https://sofmareas.sofmar.com.py"
+    "https://sofmareas.sofmar.com.py",
+    "https://*.sofmar.com.py"
   ],
   optionsSuccessStatus: 200,
 };

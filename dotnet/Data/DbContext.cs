@@ -82,6 +82,8 @@ namespace Api.Data
         public DbSet<RecordatorioCRM> RecordatoriosCRM { get; set; }
         public DbSet<ProyectosColaboradoresCRM> ProyectosColaboradoresCRM { get; set; }
         public DbSet<Cargo> Cargos { get; set; }
+        public DbSet<Banco> Bancos { get; set; }
+        public DbSet<CuentaBancaria> CuentasBancarias { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -144,11 +144,17 @@ async function login(tabla, user, pass) {
             'menu_grupo', ms.m_grupo,
             'menu_orden', ms.m_orden,
             'menu_descripcion', ms.m_descripcion, 
-            'acceso', a.a_acceso
+            'acceso', a.a_acceso,
+            'crear', a.a_agregar,
+            'editar', a.a_modificar,
+            'esActivo', grupoaccesos.estado
           )
         ) FROM acceso_menu_operador a
         INNER JOIN menu_sistemas ms ON a.a_menu = ms.m_codigo 
-        WHERE a.a_operador = operadores.op_codigo) AS permisos_menu
+        INNER JOIN grupoaccesos ON ms.m_grupo = grupoaccesos.codigo
+        WHERE a.a_operador = operadores.op_codigo
+        AND grupoaccesos.estado = 1
+        ) AS permisos_menu
         FROM ?? 
         LEFT JOIN operador_roles orol ON operadores.op_codigo = orol.or_operador
         WHERE operadores.op_usuario = ?`;
