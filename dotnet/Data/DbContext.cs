@@ -84,6 +84,7 @@ namespace Api.Data
         public DbSet<Cargo> Cargos { get; set; }
         public DbSet<Banco> Bancos { get; set; }
         public DbSet<CuentaBancaria> CuentasBancarias { get; set; }
+        public DbSet<PlanDeCuentaSET> PlanDeCuentasSET { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

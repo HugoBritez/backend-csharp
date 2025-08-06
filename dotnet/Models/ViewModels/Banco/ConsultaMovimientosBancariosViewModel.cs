@@ -9,11 +9,12 @@ namespace Api.Models.ViewModels
         public string? CbDescripcion { get; set; }
         public decimal McHaber { get; set; }
         public decimal McDebito { get; set; }
+        public decimal McSaldo { get; set; }
         public string? McOrden { get; set; }
-        public decimal McNumero { get; set; }
+        public string? McNumero { get; set; }
         public uint McConciliacion { get; set; }
         public int McEstado { get; set; }
-        public int MCReferencia { get; set; }
+        public int McReferencia { get; set; }
         public uint McCodigoMovimiento { get; set; }
         public uint McCodigoDetche { get; set; }
         public int McTipoMovimiento { get; set; }
@@ -21,4 +22,5 @@ namespace Api.Models.ViewModels
         public uint McTransferencia { get; set; }
         public string? McFechaConciliado { get; set; }
     }
+
 }

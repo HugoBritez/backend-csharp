@@ -57,6 +57,7 @@ module.exports = function(dbInyectada) {
             cli_dir,
             cli_tel,
             cli_mail,
+            cli_credito,
             cli_ci,
             cli_tipo_doc,
             cli_estado as estado

@@ -192,6 +192,7 @@ builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IProyectosColaboradoresRepositoryCRM, ProyectosColaboradoresCRMRepository>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IBancoRepository, BancoRepository>();
+builder.Services.AddScoped<IBancoService, BancoService>();
 
 // Configurar EmailService
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));

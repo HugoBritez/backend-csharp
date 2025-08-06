@@ -21,7 +21,7 @@ namespace Api.Repositories.Interfaces
             uint? Moneda
         );
 
-        Task<IEnumerable<MovimientoBancarioViewModel>> GetChequesPendientes(
+        Task<IEnumerable<ChequeViewModel>> GetChequesPendientes(
             string fechaInicio,
             string fechaFin,
             uint? codigoCuenta,
@@ -32,6 +32,46 @@ namespace Api.Repositories.Interfaces
             int? situacion,
             string? busqueda,
             int? aplicado,
+            int? guardarCobroTarjeta,
+            int? chequeTransferencia
+        );
+
+        Task<decimal> CalcularDebeCuentabancaria(
+            uint codigoCuenta,
+            string? fechaInicio,
+            string? fechaFin,
+            int? situacion,
+            int? checkSaldo,
+            int? guardarCobroTarjeta,
+            int? chequeTransferencia
+        );
+
+        Task<decimal> CalcularHaberCuentabancaria(
+            uint codigoCuenta,
+            string? fechaInicio,
+            string? fechaFin,
+            int? situacion,
+            int? checkSaldo,
+            int? guardarCobroTarjeta,
+            int? chequeTransferencia
+        );
+
+        Task<decimal> CalcularChequeCuentabancaria(
+            uint codigoCuenta,
+            string? fechaInicio,
+            string? fechaFin,
+            int? situacion,
+            int? checkSaldo,
+            int? guardarCobroTarjeta,
+            int? chequeTransferencia
+        );
+
+        Task<decimal> CalcularChequeRecibidoCuentabancaria(
+            uint codigoCuenta,
+            string? fechaInicio,
+            string? fechaFin,
+            int? situacion,
+            int? checkSaldo,
             int? guardarCobroTarjeta,
             int? chequeTransferencia
         );

@@ -7,5 +7,6 @@ namespace Api.Models.ViewModels
         public string? BancoDescripcion { get; set;}
         public string? TitularDescripcion { get; set;}
         public string? MonedaDescripcion { get; set;}
+        public string? CuentaNombre { get; set;}
     }
 }

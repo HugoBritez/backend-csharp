@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Api.Repositories.Interfaces;
-using Api.Models.Dtos.Sucursal;
-using Microsoft.AspNetCore.Authorization;
-using Api.Models.Entities;
 using Api.Models.ViewModels;
+using Api.Services.Interfaces;
+
 namespace Api.Controllers
 {
     [ApiController]
@@ -11,20 +9,25 @@ namespace Api.Controllers
     // [Authorize]
     public class BancosController : ControllerBase
     {
-        private readonly IBancoRepository _bancoRepository;
-
-        public BancosController(IBancoRepository bancoRepository)
+        private readonly IBancoService _bancoService;
+        public BancosController(IBancoService bancoService)
         {
-            _bancoRepository = bancoRepository;
+            _bancoService = bancoService;
         }
 
         [HttpGet("cuentas")]
         public async Task<ActionResult<IEnumerable<CuentaBancariaViewModel>>> GetCuentasBancarias(
             [FromQuery] int? estado,
-            [FromQuery] uint? moneda
+            [FromQuery] uint? moneda,
+            [FromQuery] string? fechaInicio,
+            [FromQuery] string? fechaFin,
+            [FromQuery] int? situacion,
+            [FromQuery] int? checkSaldo,
+            [FromQuery] int? guardarCobroTarjeta,
+            [FromQuery] int? chequeTransferencia
         )
         {
-            var res = await _bancoRepository.ConsultarCuentasBancarias(estado, moneda);
+            var res = await _bancoService.ConsultarCuentasBancarias(estado, moneda, fechaInicio, fechaFin, situacion, checkSaldo, guardarCobroTarjeta, chequeTransferencia);
             return Ok(res);
         }
 
@@ -40,7 +43,7 @@ namespace Api.Controllers
             [FromQuery] int? chequeTransferencia    
         )
         {
-            var res = await _bancoRepository.ConsultaMovimientosBancarios(fechaInicio, fechaFin, estado, cheque, codigoCuenta, tipoFecha, guardarCobroTarjeta, chequeTransferencia);
+            var res = await _bancoService.ConsultaMovimientosBancarios(fechaInicio, fechaFin, estado, cheque, codigoCuenta, tipoFecha, guardarCobroTarjeta, chequeTransferencia);
             return Ok(res);
         }
     }
