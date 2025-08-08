@@ -272,7 +272,7 @@ namespace Api.Repositories.Implementations
         where += " AND dmc.dmc_aplicado = 0";
       }
 
-       if (guardarCobroTarjeta == 1 && chequeTransferencia == 1)
+       if (guardarCobroTarjeta == 0 && chequeTransferencia == 0)
        {
          where += @"
                AND IFNULL(
