@@ -407,8 +407,48 @@ namespace Api.Repositories.Implementations
                 {camposPrecio.Venta1} AS PrecioVenta1,
                 {camposPrecio.Venta2} AS PrecioVenta2,
                 {camposPrecio.Venta3} AS PrecioVenta3,
-                SUM(dv.deve_cantidad) AS Cantidad,
-                SUM(dv.deve_exentas + dv.deve_cinco + dv.deve_diez) AS Importe
+                SUM(
+                dv.deve_cantidad
+                - COALESCE((
+                    SELECT SUM(denc.denc_cantidad)
+                    FROM detalle_nc denc
+                    INNER JOIN notadecredito nc ON denc.denc_nc = nc.nc_codigo
+                    INNER JOIN ventas v_nc ON nc.nc_venta = v_nc.ve_codigo
+                    WHERE denc.denc_articulo = dv.deve_articulo
+                    AND v_nc.ve_codigo = dv.deve_venta
+                    AND nc.nc_estado = 1
+                ), 0)
+                - COALESCE((
+                    SELECT SUM(dnd.dnd_cantidad)
+                    FROM detalle_nd_contado dnd
+                    INNER JOIN notadevolucioncontado nd ON dnd.dnd_devolucion = nd.nd_codigo
+                    INNER JOIN ventas v_nd ON nd.nd_venta = v_nd.ve_codigo
+                    WHERE dnd.dnd_articulo = dv.deve_articulo
+                    AND v_nd.ve_codigo = dv.deve_venta
+                    AND nd.nd_estado = 1
+                ), 0)
+                ) AS Cantidad,
+                (
+                  SUM(dv.deve_exentas + dv.deve_cinco + dv.deve_diez)
+                  - COALESCE((
+                    SELECT SUM(denc.denc_exentas + denc.denc_cinco + denc.denc_diez)
+                    FROM detalle_nc denc
+                    INNER JOIN notadecredito nc ON denc.denc_nc = nc.nc_codigo
+                    INNER JOIN ventas v_nc ON nc.nc_venta = v_nc.ve_codigo
+                    WHERE denc.denc_articulo = dv.deve_articulo
+                    AND v_nc.ve_codigo = dv.deve_venta
+                    AND nc.nc_estado = 1
+                  ), 0)
+                  - COALESCE((
+                    SELECT SUM(dnd.dnd_exentas + dnd.dnd_cinco + dnd.dnd_diez)
+                    FROM detalle_nd_contado dnd
+                    INNER JOIN notadevolucioncontado nd ON dnd.dnd_devolucion = nd.nd_codigo
+                    INNER JOIN ventas v_nd ON nd.nd_venta = v_nd.ve_codigo
+                    WHERE dnd.dnd_articulo = dv.deve_articulo
+                    AND v_nd.ve_codigo = dv.deve_venta
+                    AND nd.nd_estado = 1
+                  ), 0)
+                ) AS Importe
             FROM detalle_ventas dv
             INNER JOIN ventas v ON dv.deve_venta = v.ve_codigo
             INNER JOIN articulos a ON dv.deve_articulo = a.ar_codigo
@@ -421,7 +461,7 @@ namespace Api.Repositories.Implementations
             GROUP BY a.ar_codigo, a.ar_descripcion, a.ar_codbarra";
 
             var parameters = new DynamicParameters();
-            
+
             // Usar fechas específicas si están definidas, sino usar el año completo
             if (parametros.FechaDesde.HasValue && parametros.FechaHasta.HasValue)
             {
@@ -459,7 +499,7 @@ namespace Api.Repositories.Implementations
             {whereClause}";
 
             var parameters = new DynamicParameters();
-            
+
             // Usar fechas específicas si están definidas, sino usar el año completo
             if (parametros.FechaDesde.HasValue && parametros.FechaHasta.HasValue)
             {
@@ -497,7 +537,7 @@ namespace Api.Repositories.Implementations
                 {whereClause}";
 
             var parameters = new DynamicParameters();
-            
+
             // Usar fechas específicas si están definidas, sino usar el año completo
             if (parametros.FechaDesde.HasValue && parametros.FechaHasta.HasValue)
             {
@@ -509,7 +549,7 @@ namespace Api.Repositories.Implementations
                 parameters.Add("@FechaInicio", $"{parametros.AnioInicio}0101");
                 parameters.Add("@FechaFin", $"{parametros.AnioInicio}1231");
             }
-            
+
             return await connection.ExecuteScalarAsync<decimal>(query, parameters);
         }
 
@@ -532,7 +572,7 @@ namespace Api.Repositories.Implementations
                 {whereClause}";
 
             var parameters = new DynamicParameters();
-            
+
             // Usar fechas específicas si están definidas, sino usar el año completo
             if (parametros.FechaDesde.HasValue && parametros.FechaHasta.HasValue)
             {

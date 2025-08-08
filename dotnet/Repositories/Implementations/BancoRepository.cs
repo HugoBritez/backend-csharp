@@ -74,11 +74,11 @@ namespace Api.Repositories.Implementations
         parameters.Add("@Estado", estado.Value);
       }
 
-      // CORREGIR: Filtro de conciliación como en FoxPro
-      if (guardarCobroTarjeta == 0 && chequeTransferencia == 0)
-      {
-        where += " AND mcb.mc_conciliado = 1";
-      }
+      // // CORREGIR: Filtro de conciliación como en FoxPro
+      // if (guardarCobroTarjeta == 0 && chequeTransferencia == 0)
+      // {
+      //   where += " AND mcb.mc_conciliado = 1";
+      // }
 
       var query = $@"
                 SELECT
@@ -163,7 +163,6 @@ namespace Api.Repositories.Implementations
                   mcb.mc_codigo
             ";
 
-      Console.WriteLine(query);
       return await connection.QueryAsync<MovimientoBancarioViewModel>(query, parameters);
     }
 
@@ -184,12 +183,8 @@ namespace Api.Repositories.Implementations
     )
     {
       var parameters = new DynamicParameters();
-
       var where = "";
-
       using var connection = GetConnection();
-
-
 
       if (fechaInicio != null && fechaFin != null)
       {
@@ -218,7 +213,6 @@ namespace Api.Repositories.Implementations
         parameters.Add("@CodigoCuenta", codigoCuenta);
       }
 
-
       if (!string.IsNullOrEmpty(cheque))
       {
         where += " AND dc.dc_numero = @Cheque";
@@ -228,7 +222,7 @@ namespace Api.Repositories.Implementations
       if (estado.HasValue && estado != 3)
       {
         where += " AND dmc.dmc_estado = @Estado";
-        parameters.Add("@Estado", estado.Value - 1);
+        parameters.Add("@Estado", estado.Value );
       }
 
       if (situacion == 1)
@@ -251,85 +245,100 @@ namespace Api.Repositories.Implementations
         where += " AND dmc.dmc_aplicado = 0";
       }
 
-      if (guardarCobroTarjeta == 0 && chequeTransferencia == 0)
-      {
-        where += @"
-              AND IFNULL(
-                IF(
-                  (
-                    SELECT
-                      cb.c_codigo
-                    FROM
-                      conciliacion_bancaria
-                    INNER JOIN
-                      detalle_conciliacion dccc ON dccc.d_conciliacion = cb.c_codigo
-                    INNER JOIN
-                      movimientoscuentabco mb ON dccc.d_referencia_mov = mb.mc_codigo
-                    INNER JOIN
-                      movcuenta cbc ON mb.mc_movimiento = cbc.mc_codigo
-                    WHERE
-                      cbc.mc_codigo = mc.mc_codigo
-                    AND
-                      cb.c_estado = 1
-                    AND
-                      mb.mc_conciliado = 1
-                    LIMIT 1
-                  ) > 0 , 1, 0
-                ), 0
-              ) = 1
-            ";
-      }
+       if (guardarCobroTarjeta == 1 && chequeTransferencia == 1)
+       {
+         where += @"
+               AND IFNULL(
+                 IF(
+                   (
+                     SELECT
+                       cb.c_codigo
+                     FROM
+                       conciliacion_bancaria cb
+                     INNER JOIN
+                       detalle_conciliacion dccc ON dccc.d_conciliacion = cb.c_codigo
+                     INNER JOIN
+                       movimientoscuentabco mb ON dccc.d_referencia_mov = mb.mc_codigo
+                     INNER JOIN
+                       movcuenta cbc ON mb.mc_movimiento = cbc.mc_codigo
+                     WHERE
+                       cbc.mc_codigo = mc.mc_codigo
+                     AND
+                       cb.c_estado = 1
+                     AND
+                       mb.mc_conciliado = 1
+                     LIMIT 1
+                   ) > 0 , 1, 0
+                 ), 0
+               ) = 1
+             ";
+       }
 
       var query = $@"
             SELECT
-		          dmc.dmc_movimiento AS McMovimiento,
-		          mc.mc_cuenta AS McCuenta,
-		          cb.cb_descripcion AS McDescripcion,
-		          mc.mc_fecha AS McFecha,
-		          IFNULL((SELECT
-		        			    IF(tsc.mc_f_conciliado = '0001-01-01','',DATE_FORMAT(tsc.mc_f_conciliado, '%d/%m/%Y')) AS fcon
-		        			FROM
-		        			    movimientoscuentabco tsc
-		        			WHERE
-		        			    tsc.mc_movimiento = mc.mc_codigo LIMIT 1), "") AS McFechaConciliado,
-		          dmc.dmc_FechaP AS McFechaP,
-		          dmc.dmc_importe AS McImporte,
-		          dmc.dmc_orden AS McOrden,
-		          dmc.dmc_estado AS McEstado,
-		          dc.dc_numero AS McNumero,
-		          dmc.dmc_cheque AS McCheque,
-		          0 AS McReferencia,
-		          mc.mc_codigo AS McCodigoMovimiento,
-		          dmc.dmc_codigo AS McCodigoDetalle,
-		          dmc.dmc_situacion AS McSituacion,
-		          2 AS McTipoMovimiento,
-		          IFNULL(IF((SELECT
-		        			    cb.c_codigo
-		        			FROM
-		        			    conciliacion_bancaria cb INNER JOIN
-		        			    detalle_conciliacion dccc ON dccc.d_conciliacion = cb.c_codigo INNER JOIN
-		        			    movimientoscuentabco mb ON dccc.d_referencia_mov = mb.mc_codigo INNER JOIN
-		        			    movcuenta cbc ON mb.mc_movimiento = cbc.mc_codigo
-		        			WHERE
-		        			    cbc.mc_codigo = mc.mc_codigo AND
-		        			    cb.c_estado = 1 AND
-		        			    mb.mc_conciliado = 1
-		        			LIMIT 1) > 0, 1 , 0), 0) AS McConciliado
-		        FROM
-		          detalle_mov_chequera dmc INNER JOIN
-		          movcuenta mc ON dmc.dmc_movimiento = mc.mc_codigo INNER JOIN
-		          cuentasbco cb ON mc.mc_cuenta = cb.cb_codigo LEFT JOIN
-		          detalle_chequera dc ON dmc.dmc_cheque = dc.dc_codigo
-		        WHERE
-		          1=1
-		        {where}
-		        ORDER BY
-		      dmc.dmc_codigo
+                dmc.dmc_movimiento AS McMovimiento,
+                mc.mc_cuenta AS McCuenta,
+                cb.cb_descripcion AS McDescripcion,
+                mc.mc_fecha AS McFecha,
+                IFNULL(
+                    (SELECT
+                        IF(tsc.mc_f_conciliado = '0001-01-01', '', DATE_FORMAT(tsc.mc_f_conciliado, '%d/%m/%Y'))
+                    FROM
+                        movimientoscuentabco tsc
+                    WHERE
+                        tsc.mc_movimiento = mc.mc_codigo 
+                    LIMIT 1), 
+                    ''
+                ) AS McFechaConciliado,
+                dmc.dmc_FechaP AS McFechaP,
+                dmc.dmc_importe AS McImporte,
+                dmc.dmc_orden AS McOrden,
+                dmc.dmc_estado AS McEstado,
+                dc.dc_numero AS McNumero,
+                dmc.dmc_cheque AS McCheque,
+                0 AS McReferencia,
+                mc.mc_codigo AS McCodigoMovimiento,
+                dmc.dmc_codigo AS McCodigoDetalle,
+                dmc.dmc_situacion AS McSituacion,
+                2 AS McTipoMovimiento,
+                IFNULL(
+                    IF(
+                        (SELECT
+                            cb.c_codigo
+                        FROM
+                            conciliacion_bancaria cb 
+                        INNER JOIN
+                            detalle_conciliacion dccc ON dccc.d_conciliacion = cb.c_codigo 
+                        INNER JOIN
+                            movimientoscuentabco mb ON dccc.d_referencia_mov = mb.mc_codigo 
+                        INNER JOIN
+                            movcuenta cbc ON mb.mc_movimiento = cbc.mc_codigo
+                        WHERE
+                            cbc.mc_codigo = mc.mc_codigo 
+                        AND
+                            cb.c_estado = 1 
+                        AND
+                            mb.mc_conciliado = 1
+                        LIMIT 1) > 0, 1, 0
+                    ), 0
+                ) AS McConciliado
+            FROM
+                detalle_mov_chequera dmc 
+            INNER JOIN
+                movcuenta mc ON dmc.dmc_movimiento = mc.mc_codigo 
+            INNER JOIN
+                cuentasbco cb ON mc.mc_cuenta = cb.cb_codigo 
+            LEFT JOIN
+                detalle_chequera dc ON dmc.dmc_cheque = dc.dc_codigo
+            WHERE
+                1=1
+                {where}
+            ORDER BY
+                dmc.dmc_codigo
         ";
-      Console.WriteLine(query);
+
       return await connection.QueryAsync<ChequeViewModel>(query, parameters);
     }
-
 
     public async Task<IEnumerable<CuentaBancariaViewModel>> ConsultarCuentasBancarias(
         int? Estado,
@@ -385,6 +394,7 @@ namespace Api.Repositories.Implementations
 
         using var connection = GetConnection();
         var parameters = new DynamicParameters();
+        Console.WriteLine("CALCULAR DEBE CUENTA BANCARIA");
         
         // Construir comando base como en FoxPro
         var comando = "WHERE 1 = 1";
@@ -411,6 +421,8 @@ namespace Api.Repositories.Implementations
                 AND mc.mc_tipo IN (1, 6)
         ";
 
+        Console.WriteLine(query);
+
         return await connection.QueryFirstOrDefaultAsync<decimal>(query, parameters);
     }
 
@@ -429,7 +441,9 @@ namespace Api.Repositories.Implementations
 
         using var connection = GetConnection();
         var parameters = new DynamicParameters();
-        
+
+        Console.WriteLine("CALCULAR HABER CUENTA BANCARIA");
+
         // Construir comando base como en FoxPro
         var comando = "WHERE 1 = 1";
         comando += " AND mc.mc_cuenta = @CodigoCuenta";
@@ -455,6 +469,8 @@ namespace Api.Repositories.Implementations
                 AND mc.mc_tipo IN (2, 5)
         ";
 
+        Console.WriteLine(query);
+
         return await connection.QueryFirstOrDefaultAsync<decimal>(query, parameters);
     }
 
@@ -473,7 +489,9 @@ namespace Api.Repositories.Implementations
 
         using var connection = GetConnection();
         var parameters = new DynamicParameters();
-        
+
+        Console.WriteLine("CALCULAR CHEQUE CUENTA BANCARIA");
+
         // Construir comando2 base como en FoxPro
         var comando2 = "WHERE 1 = 1";
         comando2 += " AND mc.mc_cuenta = @CodigoCuenta";
@@ -528,6 +546,8 @@ namespace Api.Repositories.Implementations
                 AND dmvc.dmc_estado = 1
         ";
 
+        Console.WriteLine(query);
+
         return await connection.QueryFirstOrDefaultAsync<decimal>(query, parameters);
     }
 
@@ -546,7 +566,9 @@ namespace Api.Repositories.Implementations
 
         using var connection = GetConnection();
         var parameters = new DynamicParameters();
-        
+
+        Console.WriteLine("CALCULAR CHEQUE RECIBIDO CUENTA BANCARIA");
+
         // Construir comando base como en FoxPro
         var comando = "WHERE 1 = 1";
         comando += " AND mc.mc_cuenta = @CodigoCuenta";
@@ -572,6 +594,8 @@ namespace Api.Repositories.Implementations
                 AND dmch.dmc_estado = 0 
                 AND mc.mc_tipo IN (1)
         ";
+
+        Console.WriteLine(query);
 
         return await connection.QueryFirstOrDefaultAsync<decimal>(query, parameters);
     }

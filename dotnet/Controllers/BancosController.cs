@@ -23,11 +23,10 @@ namespace Api.Controllers
             [FromQuery] string? fechaFin,
             [FromQuery] int? situacion,
             [FromQuery] int? checkSaldo,
-            [FromQuery] int? guardarCobroTarjeta,
             [FromQuery] int? chequeTransferencia
         )
         {
-            var res = await _bancoService.ConsultarCuentasBancarias(estado, moneda, fechaInicio, fechaFin, situacion, checkSaldo, guardarCobroTarjeta, chequeTransferencia);
+            var res = await _bancoService.ConsultarCuentasBancarias(estado, moneda, fechaInicio, fechaFin, situacion, checkSaldo, chequeTransferencia);
             return Ok(res);
         }
 
@@ -39,11 +38,14 @@ namespace Api.Controllers
             [FromQuery] string? cheque,
             [FromQuery] uint? codigoCuenta,
             [FromQuery] int? tipoFecha,
-            [FromQuery] int? guardarCobroTarjeta,
-            [FromQuery] int? chequeTransferencia    
+            [FromQuery] int? chequeTransferencia,
+            [FromQuery] int? checkSaldo,
+            [FromQuery] int? situacion,
+            [FromQuery] string? busqueda,
+            [FromQuery] int? aplicado
         )
         {
-            var res = await _bancoService.ConsultaMovimientosBancarios(fechaInicio, fechaFin, estado, cheque, codigoCuenta, tipoFecha, guardarCobroTarjeta, chequeTransferencia);
+            var res = await _bancoService.ConsultaMovimientosBancarios(fechaInicio, fechaFin, estado, cheque, codigoCuenta, tipoFecha, chequeTransferencia, checkSaldo, situacion, busqueda, aplicado);
             return Ok(res);
         }
     }
