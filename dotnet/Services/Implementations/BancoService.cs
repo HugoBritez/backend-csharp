@@ -49,6 +49,32 @@ namespace Api.Services.Implementations
             return cuentas;
         }
 
+        private static MovimientoBancarioViewModel ConvertirChequeAMovimiento(ChequeViewModel cheque)
+        {
+            return new MovimientoBancarioViewModel
+            {
+                McCodigo = cheque.McCodigoDetalle,
+                McFecha = cheque.McFecha,
+                TmDescripcion = "Cheque Confirmado",
+                McCuenta = cheque.McCuenta,
+                CbDescripcion = cheque.CbDescripcion,
+                McHaber = cheque.McImporte,
+                McDebito = 0,
+                McSaldo = 0,
+                McOrden = cheque.McOrden,
+                McNumero = cheque.McNumero.ToString(),
+                McConciliacion = (uint)cheque.McConciliado,
+                McEstado = cheque.McEstado,
+                McReferencia = cheque.MCReferencia,
+                McCodigoMovimiento = cheque.McCodigoMovimiento,
+                McCodigoDetche = cheque.McCodigoDetalle,
+                McTipoMovimiento = 2,
+                McConciliado = cheque.McConciliado,
+                McTransferencia = 0,
+                McFechaConciliado = cheque.McFechaConciliado
+            };
+        }
+
         public async Task<ConsultaMovimientosResponse> ConsultaMovimientosBancarios(
             string fechaInicio,
             string fechaFin,
@@ -62,8 +88,6 @@ namespace Api.Services.Implementations
             string? busqueda,
             int? aplicado)
         {
-            Console.WriteLine($"=== INICIO CONSULTA ===");
-            Console.WriteLine($"Parámetros: fechaInicio={fechaInicio}, fechaFin={fechaFin}, estado={estado}, codigoCuenta={codigoCuenta}, aplicado={aplicado}, situacion={situacion}");
 
             if (!codigoCuenta.HasValue)
                 return new ConsultaMovimientosResponse();
@@ -74,6 +98,8 @@ namespace Api.Services.Implementations
             var conHaber = 0.0m;
             var conDebe = 0.0m;
             var saldoActual = 0.0m;
+            var movimientos = new List<MovimientoBancarioViewModel>();
+            var saldoCuenta = 0.0m;
 
             var guardarCobroTarjetaResponse = await _configuracionRepository.GetById(17);
             var guardarCobroTarjeta = guardarCobroTarjetaResponse?.Valor ?? "0";
@@ -82,155 +108,231 @@ namespace Api.Services.Implementations
             var cuentaSeleccionada = await ConsultarCuentasBancarias(null, null, fechaInicio, fechaFin, null, null, chequeTransferencia);
             var cuenta = cuentaSeleccionada.FirstOrDefault(c => c.Codigo == codigoCuenta.Value);
             saldoAnterior = cuenta?.Saldo ?? 0;
-            Console.WriteLine($"Saldo anterior: {saldoAnterior}");
+            saldoCuenta = saldoAnterior;
 
             // Obtener movimientos regulares
-            var movimientos = await _bancoRepository.ConsultaMovimientosBancarios(
-                fechaInicio, fechaFin, estado, cheque, codigoCuenta, tipoFecha,
-                int.Parse(guardarCobroTarjeta), chequeTransferencia);
-
-            Console.WriteLine($"=== MOVIMIENTOS REGULARES ===");
-            Console.WriteLine($"Total movimientos regulares: {movimientos.Count()}");
-            foreach (var mov in movimientos.Take(3))
+            if(aplicado == 1)
             {
-                Console.WriteLine($"Mov: {mov.McCodigo} - Fecha: {mov.McFecha} - Haber: {mov.McHaber} - Debito: {mov.McDebito} - Conciliado: {mov.McConciliado}");
-            }
+                var chequesPendientes = await GetChequesPendientes(
+                    fechaInicio,
+                    fechaFin,
+                    codigoCuenta,
+                    cheque,
+                    estado,
+                    tipoFecha,
+                    checkSaldo,
+                    situacion,
+                    busqueda,
+                    aplicado,
+                    chequeTransferencia
+                    );
 
-            // Obtener cheques pendientes
-            var chequesPendientes = await _bancoRepository.GetChequesPendientes(
-                fechaInicio, fechaFin, codigoCuenta, cheque, estado, tipoFecha,
-                checkSaldo, situacion, busqueda, aplicado, int.Parse(guardarCobroTarjeta), chequeTransferencia);
+                var chequesPendientesMovimientos = chequesPendientes.Select(ConvertirChequeAMovimiento).ToList();
 
-            Console.WriteLine($"=== CHEQUES PENDIENTES ===");
-            Console.WriteLine($"Total cheques pendientes: {chequesPendientes.Count()}");
-            
-            // Combinar ambos resultados
-            var todosLosMovimientos = new List<MovimientoBancarioViewModel>();
-            todosLosMovimientos.AddRange(movimientos);
-
-            // Convertir cheques a movimientos
-            var chequesComoMovimientos = chequesPendientes.Select(c => new MovimientoBancarioViewModel
-            {
-                McCodigo = c.McCodigoDetalle,
-                McFecha = c.McFecha,
-                TmDescripcion = "Cheque Confirmado",
-                McCuenta = c.McCuenta,
-                CbDescripcion = c.CbDescripcion,
-                McHaber = c.McImporte,
-                McDebito = 0,
-                McSaldo = 0,
-                McOrden = c.McOrden,
-                McNumero = c.McNumero.ToString(),
-                McConciliacion = (uint)c.McConciliado,
-                McEstado = c.McEstado,
-                McReferencia = c.MCReferencia,
-                McCodigoMovimiento = c.McCodigoMovimiento,
-                McCodigoDetche = c.McCodigoDetalle,
-                McTipoMovimiento = 2,
-                McConciliado = c.McConciliado,
-                McTransferencia = 0,
-                McFechaConciliado = c.McFechaConciliado
-            });
-            todosLosMovimientos.AddRange(chequesComoMovimientos);
-
-            Console.WriteLine($"=== COMBINACIÓN ===");
-            Console.WriteLine($"Total después de combinar: {todosLosMovimientos.Count}");
-
-            // Ordenar por fecha
-            var movimientosOrdenados = todosLosMovimientos.OrderBy(m => m.McFecha).ToList();
-
-            Console.WriteLine($"=== MOVIMIENTOS ORDENADOS ===");
-            Console.WriteLine($"Total final: {movimientosOrdenados.Count}");
-            foreach (var mov in movimientosOrdenados.Take(5))
-            {
-                Console.WriteLine($"Final: {mov.McCodigo} - Fecha: {mov.McFecha} - Tipo: {mov.TmDescripcion} - Haber: {mov.McHaber} - Debito: {mov.McDebito}");
-            }
-
-            // Calcular totales considerando TODOS los movimientos (conciliados y no conciliados)
-            var totalCredito = movimientosOrdenados.Sum(m => m.McHaber);
-            var totalDebito = movimientosOrdenados.Sum(m => m.McDebito);
-
-            // Mantener las variables originales para compatibilidad con la lógica existente
-            if (aplicado == 1)
-            {
-                Console.WriteLine($"=== CÁLCULO (aplicado=1) ===");
-                aConHaber = movimientosOrdenados.Where(m => m.McConciliado == 0).Sum(m => m.McHaber);
-                conHaber = movimientosOrdenados.Where(m => m.McConciliado == 1).Sum(m => m.McHaber);
-                conDebe = movimientosOrdenados.Where(m => m.McConciliado == 1).Sum(m => m.McDebito);
-
-                Console.WriteLine($"AConHaber: {aConHaber}");
-                Console.WriteLine($"ConHaber: {conHaber}");
-                Console.WriteLine($"ConDebe: {conDebe}");
-
-                foreach (var movimiento in movimientosOrdenados)
+                // Calcular saldo acumulado para cada movimiento
+                var saldoAcumulado = saldoAnterior;
+                foreach(var movimiento in chequesPendientesMovimientos)
                 {
-                    movimiento.McSaldo = saldoAnterior + movimiento.McDebito - movimiento.McHaber;
-                    saldoAnterior = movimiento.McSaldo;
+                    saldoAcumulado += movimiento.McDebito - movimiento.McHaber;
+                    movimiento.McSaldo = saldoAcumulado;
                 }
 
-                saldoActual = saldoAnterior + conHaber - aConHaber - conDebe;
+                movimientos = chequesPendientesMovimientos;
+                conHaber = chequesPendientesMovimientos.Sum(m => m.McHaber);
+                conDebe = chequesPendientesMovimientos.Sum(m => m.McDebito);
+                saldoActual = saldoAcumulado;
+                aConHaber = conHaber;
             }
             else
             {
-                Console.WriteLine($"=== CÁLCULO (aplicado=0, situacion={situacion}) ===");
-                if (situacion == 1)
+                if(situacion == 1)
                 {
-                    conHaber = movimientosOrdenados.Where(m => m.McConciliado == 1).Sum(m => m.McHaber);
-                    conDebe = movimientosOrdenados.Where(m => m.McConciliado == 1).Sum(m => m.McDebito);
-
-                    Console.WriteLine($"ConHaber: {conHaber}");
-                    Console.WriteLine($"ConDebe: {conDebe}");
-
-                    foreach (var movimiento in movimientosOrdenados)
+                    if(!string.IsNullOrEmpty(cheque))
                     {
-                        movimiento.McSaldo = saldoAnterior + movimiento.McDebito - movimiento.McHaber;
-                        saldoAnterior = movimiento.McSaldo;
-                    }
+                        var chequesPendientes = await GetChequesPendientes(
+                            fechaInicio,
+                            fechaFin,
+                            codigoCuenta,
+                            cheque,
+                            estado,
+                            tipoFecha,
+                            checkSaldo,
+                            situacion,
+                            busqueda,
+                            aplicado,
+                            chequeTransferencia
+                            );
+                        var chequesPendientesMovimientos = chequesPendientes.Select(c => ConvertirChequeAMovimiento(c)).ToList();
 
-                    saldoActual = saldoAnterior + conHaber - aConHaber - conDebe;
+                        // Calcular saldo acumulado para cada movimiento
+                        var saldoAcumulado = saldoAnterior;
+                        foreach(var movimiento in chequesPendientesMovimientos)
+                        {
+                            saldoAcumulado += movimiento.McDebito - movimiento.McHaber;
+                            movimiento.McSaldo = saldoAcumulado;
+                        }
+
+                        movimientos = chequesPendientesMovimientos;
+                        conHaber = chequesPendientesMovimientos.Sum(m => m.McHaber);
+                        conDebe = chequesPendientesMovimientos.Sum(m => m.McDebito);
+                        saldoActual = saldoAcumulado;
+                        aConHaber = conHaber;
+                    }
+                    else
+                    {
+                        var movimientosBancarios = await _bancoRepository.ConsultaMovimientosBancarios(
+                            fechaInicio,
+                            fechaFin,
+                            estado,
+                            cheque,
+                            codigoCuenta,
+                            tipoFecha, 
+                            int.Parse(guardarCobroTarjeta),
+                            chequeTransferencia
+                            );
+
+                        var chequesPendientes = await GetChequesPendientes(
+                            fechaInicio,
+                            fechaFin,
+                            codigoCuenta,
+                            cheque,
+                            estado,
+                            tipoFecha,
+                            checkSaldo,
+                            situacion,
+                            busqueda,
+                            aplicado,
+                            chequeTransferencia
+                            );
+
+                        var chequesPendientesMovimientos = chequesPendientes.Select(c => ConvertirChequeAMovimiento(c)).ToList();
+
+                        // Combinar y ordenar por fecha
+                        var todosLosMovimientos = new List<MovimientoBancarioViewModel>();
+                        todosLosMovimientos.AddRange(movimientosBancarios);
+                        todosLosMovimientos.AddRange(chequesPendientesMovimientos);
+                        var movimientosOrdenados = todosLosMovimientos.OrderBy(m => m.McFecha).ToList();
+
+                        // Calcular saldo acumulado para cada movimiento
+                        var saldoAcumulado = saldoAnterior;
+                        foreach(var movimiento in movimientosOrdenados)
+                        {
+                            saldoAcumulado += movimiento.McDebito - movimiento.McHaber;
+                            movimiento.McSaldo = saldoAcumulado;
+                        }
+
+                        movimientos = movimientosOrdenados;
+                        conHaber = movimientosBancarios.Sum(m => m.McHaber);
+                        conDebe = movimientosBancarios.Sum(m => m.McDebito);
+                        saldoActual = saldoAcumulado;
+                        aConHaber = conHaber;
+                    }
                 }
                 else if (situacion == 2)
                 {
-                    aConHaber = movimientosOrdenados.Where(m => m.McConciliado == 0).Sum(m => m.McHaber);
-                    Console.WriteLine($"AConHaber: {aConHaber}");
+                    var chequesPendientes = await GetChequesPendientes(
+                        fechaInicio,
+                        fechaFin,
+                        codigoCuenta,
+                        cheque,
+                        estado,
+                        tipoFecha,
+                        checkSaldo,
+                        situacion,
+                        busqueda,
+                        aplicado,
+                        chequeTransferencia
+                        );
+                    var chequesPendientesMovimientos = chequesPendientes.Select(c => ConvertirChequeAMovimiento(c)).ToList();
+
+                    // Calcular saldo acumulado para cada movimiento
+                    var saldoAcumulado = saldoAnterior;
+                    foreach(var movimiento in chequesPendientesMovimientos)
+                    {
+                        saldoAcumulado += movimiento.McDebito - movimiento.McHaber;
+                        movimiento.McSaldo = saldoAcumulado;
+                    }
+
+                    movimientos = chequesPendientesMovimientos;
+                    conHaber = chequesPendientesMovimientos.Sum(m => m.McHaber);
+                    conDebe = chequesPendientesMovimientos.Sum(m => m.McDebito);
+                    saldoActual = saldoAcumulado;
+                    aConHaber = conHaber;
                 }
                 else if (situacion == 3)
                 {
-                    aConHaber = movimientosOrdenados.Where(m => m.McConciliado == 0).Sum(m => m.McHaber);
-                    conHaber = movimientosOrdenados.Where(m => m.McConciliado == 1).Sum(m => m.McHaber);
-                    conDebe = movimientosOrdenados.Where(m => m.McConciliado == 1).Sum(m => m.McDebito);
-
-                    Console.WriteLine($"AConHaber: {aConHaber}");
-                    Console.WriteLine($"ConHaber: {conHaber}");
-                    Console.WriteLine($"ConDebe: {conDebe}");
-
-                    foreach (var movimiento in movimientosOrdenados)
+                    if(!string.IsNullOrEmpty(cheque))
                     {
-                        movimiento.McSaldo = saldoAnterior + movimiento.McDebito - movimiento.McHaber;
-                        saldoAnterior = movimiento.McSaldo;
-                    }
+                        var chequesPendientes = await GetChequesPendientes(
+                            fechaInicio,
+                            fechaFin,
+                            codigoCuenta,
+                            cheque,
+                            estado,
+                            tipoFecha,
+                            checkSaldo,
+                            situacion,
+                            busqueda,
+                            aplicado,
+                            chequeTransferencia);
+                        var chequesPendientesMovimientos = chequesPendientes.Select(c => ConvertirChequeAMovimiento(c)).ToList();
 
-                    saldoActual = saldoAnterior + conHaber - aConHaber - conDebe;
+                        // Calcular saldo acumulado para cada movimiento
+                        var saldoAcumulado = saldoAnterior;
+                        foreach(var movimiento in chequesPendientesMovimientos)
+                        {
+                            saldoAcumulado += movimiento.McDebito - movimiento.McHaber;
+                            movimiento.McSaldo = saldoAcumulado;
+                        }
+
+                        movimientos = chequesPendientesMovimientos;
+                        conHaber = chequesPendientesMovimientos.Sum(m => m.McHaber);
+                        conDebe = chequesPendientesMovimientos.Sum(m => m.McDebito);
+                        saldoActual = saldoAcumulado;
+                        aConHaber = conHaber;
+                    }
+                    else
+                    {
+                        var movimientosBancarios = await _bancoRepository.ConsultaMovimientosBancarios(fechaInicio, fechaFin, estado, cheque, codigoCuenta, tipoFecha, int.Parse(guardarCobroTarjeta), chequeTransferencia);
+                        var chequesPendientes = await GetChequesPendientes(fechaInicio, fechaFin, codigoCuenta, cheque, estado, tipoFecha, checkSaldo, situacion, busqueda, aplicado, chequeTransferencia);
+                        var chequesPendientesMovimientos = chequesPendientes.Select(c => ConvertirChequeAMovimiento(c)).ToList();
+
+                        // Combinar y ordenar por fecha
+                        var todosLosMovimientos = new List<MovimientoBancarioViewModel>();
+                        todosLosMovimientos.AddRange(movimientosBancarios);
+                        todosLosMovimientos.AddRange(chequesPendientesMovimientos);
+                        var movimientosOrdenados = todosLosMovimientos.OrderBy(m => m.McFecha).ToList();
+
+                        // Calcular saldo acumulado para cada movimiento
+                        var saldoAcumulado = saldoAnterior;
+                        foreach(var movimiento in movimientosOrdenados)
+                        {
+                            saldoAcumulado += movimiento.McDebito - movimiento.McHaber;
+                            movimiento.McSaldo = saldoAcumulado;
+                        }
+
+                        movimientos = movimientosOrdenados;
+                        conHaber = movimientosBancarios.Sum(m => m.McHaber);
+                        conDebe = movimientosBancarios.Sum(m => m.McDebito);
+                        saldoActual = saldoAcumulado;
+                        aConHaber = conHaber;   
+                    }
                 }
             }
 
-            Console.WriteLine($"=== RESPUESTA FINAL ===");
-            Console.WriteLine($"Saldo anterior: {saldoAnterior}");
-            Console.WriteLine($"Saldo actual: {saldoActual}");
-            Console.WriteLine($"Total movimientos en respuesta: {movimientosOrdenados.Count}");
 
             var response = new ConsultaMovimientosResponse
             {
-                Movimientos = movimientosOrdenados,
-                SaldoAnterior = cuenta?.Saldo ?? 0,
-                TotalCredito = totalCredito,  // Usar el total de TODOS los movimientos
-                TotalDebito = totalDebito,    // Usar el total de TODOS los movimientos
-                Total = totalDebito - totalCredito,
+                Movimientos = movimientos,
+                SaldoAnterior = saldoAnterior,
+                TotalCredito = conHaber,
+                TotalDebito = conDebe,
+                Total = conDebe - conHaber,
                 SaldoActual = saldoActual,
                 AConHaber = aConHaber
             };
             
-            return response;
+            return response; 
         }
 
         public async Task<IEnumerable<ChequeViewModel>> GetChequesPendientes(

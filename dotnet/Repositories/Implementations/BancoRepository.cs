@@ -34,6 +34,16 @@ namespace Api.Repositories.Implementations
       var where = "WHERE 1 = 1";
       using var connection = GetConnection();
 
+
+      Console.WriteLine("fechaInicio: " + fechaInicio);
+      Console.WriteLine("fechaFin: " + fechaFin);
+      Console.WriteLine("estado: " + estado);
+      Console.WriteLine("cheque: " + cheque);
+      Console.WriteLine("codigoCuenta: " + codigoCuenta);
+      Console.WriteLine("tipoFecha: " + tipoFecha);
+      Console.WriteLine("guardarCobroTarjeta: " + guardarCobroTarjeta);
+      Console.WriteLine("chequeTransferencia: " + chequeTransferencia);
+
       // CORREGIR: Filtro de cuenta como en FoxPro
       if (codigoCuenta.HasValue && codigoCuenta.Value != 0)
       {
@@ -163,6 +173,8 @@ namespace Api.Repositories.Implementations
                   mcb.mc_codigo
             ";
 
+            Console.WriteLine(query);
+
       return await connection.QueryAsync<MovimientoBancarioViewModel>(query, parameters);
     }
 
@@ -185,6 +197,21 @@ namespace Api.Repositories.Implementations
       var parameters = new DynamicParameters();
       var where = "";
       using var connection = GetConnection();
+
+
+      Console.WriteLine("fechaInicio: " + fechaInicio);
+      Console.WriteLine("fechaFin: " + fechaFin);
+      Console.WriteLine("checkSaldo: " + checkSaldo);
+      Console.WriteLine("tipoFecha: " + tipoFecha);
+      Console.WriteLine("situacion: " + situacion);
+      Console.WriteLine("busqueda: " + busqueda);
+      Console.WriteLine("aplicado: " + aplicado); 
+      Console.WriteLine("guardarCobroTarjeta: " + guardarCobroTarjeta);
+      Console.WriteLine("chequeTransferencia: " + chequeTransferencia);
+      Console.WriteLine("codigoCuenta: " + codigoCuenta);
+      Console.WriteLine("cheque: " + cheque);
+      Console.WriteLine("estado: " + estado);
+      Console.WriteLine("tipoFecha: " + tipoFecha);
 
       if (fechaInicio != null && fechaFin != null)
       {
@@ -219,7 +246,7 @@ namespace Api.Repositories.Implementations
         parameters.Add("@Cheque", cheque);
       }
 
-      if (estado.HasValue && estado != 3)
+      if (estado.HasValue && estado != 2)
       {
         where += " AND dmc.dmc_estado = @Estado";
         parameters.Add("@Estado", estado.Value );
@@ -336,6 +363,8 @@ namespace Api.Repositories.Implementations
             ORDER BY
                 dmc.dmc_codigo
         ";
+
+        Console.WriteLine(query);
 
       return await connection.QueryAsync<ChequeViewModel>(query, parameters);
     }
