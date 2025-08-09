@@ -628,5 +628,134 @@ namespace Api.Repositories.Implementations
 
         return await connection.QueryFirstOrDefaultAsync<decimal>(query, parameters);
     }
+
+    public async Task<IEnumerable<CuentaBancariaViewModel>> ConsultaCuentasBancariasNew(
+      int? Estado,
+      uint? Moneda,
+      int? conciliado,
+      int? checkTransferencia,
+      uint? codigoCuenta
+    )
+    {
+      using var connection = GetConnection();
+      var parameters = new DynamicParameters();
+      var where = "WHERE 1 = 1";
+
+      // Filtro por banco (equivalente a this.idbanco en FoxPro)
+      if (codigoCuenta.HasValue && codigoCuenta.Value > 0)
+      {
+          where += " AND cb.cb_banco = @CodigoBanco";
+          parameters.Add("@CodigoBanco", codigoCuenta.Value);
+      }
+
+      // Filtro por moneda (equivalente a DO CASE en FoxPro)
+      if (Moneda.HasValue)
+      {
+          if (Moneda.Value == 2) // Dólar
+          {
+              where += " AND cb.cb_moneda = 2";
+          }
+          else if (Moneda.Value == 1) // Guaraní
+          {
+              where += " AND cb.cb_moneda = 1";
+          }
+      }
+
+      // Filtro por estado (equivalente a ckdesac en FoxPro)
+      if (Estado.HasValue)
+      {
+          if (Estado.Value == 1) // Incluir desactivadas
+          {
+              where += " AND cb.cb_estado IN (0, 1)";
+          }
+          else
+          {
+              where += " AND cb.cb_estado = 1";
+          }
+      }
+
+      // Condiciones de conciliación (equivalente a guardar_cobro_tarjeta y checkTransSc en FoxPro)
+      var comandoConci = "";
+      var comandoConci2 = "";
+      
+      if (conciliado == 0 && checkTransferencia == 0)
+      {
+          comandoConci = " AND mcc.mc_conciliado = 1";
+          comandoConci2 = @" AND IFNULL(IF((
+              SELECT cb.c_codigo
+              FROM conciliacion_bancaria cb 
+              INNER JOIN detalle_conciliacion dccc ON dccc.d_conciliacion = cb.c_codigo 
+              INNER JOIN movimientoscuentabco mb ON dccc.d_referencia_mov = mb.mc_codigo 
+              INNER JOIN movcuenta cbc ON mb.mc_movimiento = cbc.mc_codigo
+              WHERE cbc.mc_codigo = mc.mc_codigo 
+              AND cb.c_estado = 1 
+              AND mb.mc_conciliado = 1
+              LIMIT 1) > 0, 1, 0), 0) = 1";
+      }
+
+      var query = $@"
+          SELECT
+              cb.cb_codigo AS Codigo,
+              b.ba_descripcion AS BancoDescripcion,
+              cb.cb_descripcion AS Descripcion,
+              c.cli_razon AS TitularDescripcion,
+              m.mo_descripcion AS MonedaDescripcion,
+              (IFNULL((
+                  SELECT IFNULL(SUM(mcc.mc_debe), 0.00) as saldo
+                  FROM movimientoscuentabco mcc 
+                  INNER JOIN movcuenta mc ON mcc.mc_movimiento = mc.mc_codigo
+                  WHERE mc.mc_cuenta = cb.cb_codigo 
+                  AND mc.mc_estado = 1 
+                  AND mc.mc_tipo IN (1, 6) {comandoConci}
+              ), 0.00)) - 
+              (IFNULL((
+                  SELECT IFNULL(SUM(mcc.mc_haber), 0.00) as saldo
+                  FROM movimientoscuentabco mcc 
+                  INNER JOIN movcuenta mc ON mcc.mc_movimiento = mc.mc_codigo
+                  WHERE mc.mc_cuenta = cb.cb_codigo 
+                  AND mc.mc_estado = 1 
+                  AND mc.mc_tipo IN (2, 5) {comandoConci}
+              ), 0.00)) + 
+              IFNULL((
+                  SELECT IFNULL(SUM(dmvc.dmc_importe), 0.00) as saldoChepro
+                  FROM movcuenta mc 
+                  INNER JOIN detalle_mov_chequera dmvc ON mc.mc_codigo = dmvc.dmc_movimiento
+                  WHERE mc.mc_cuenta = cb.cb_codigo 
+                  AND dmvc.dmc_situacion = 1 
+                  AND dmvc.dmc_estado = 1 {comandoConci2}
+              ), 0.00) + 
+              IFNULL((
+                  SELECT IFNULL(SUM(dmch.dmc_monto), 0.00) as saldo
+                  FROM movimientoscuentabco mcc 
+                  INNER JOIN movcuenta mc ON mcc.mc_movimiento = mc.mc_codigo  
+                  INNER JOIN detalle_mov_cheque dmch ON mc.mc_codigo = dmch.dmc_mov
+                  WHERE mc.mc_cuenta = cb.cb_codigo 
+                  AND dmch.dmc_estado = 0 
+                  AND mc.mc_tipo IN (1) {comandoConci}
+              ), 0.00) AS Saldo,
+              cb.cb_estado AS Estado,
+              cb.cb_aplicar AS Aplicar,
+              cb.cb_tipocuenta AS TipoCuenta,
+              cb.cb_plan AS Plan,
+              b.ba_descripcion AS BancoDescripcion,
+              c.cli_razon AS TitularDescripcion,
+              m.mo_descripcion AS MonedaDescripcion,
+              IFNULL(pl.p_titulo, '') AS CuentaNombre
+          FROM
+              cuentasbco cb 
+              INNER JOIN bancos b ON cb.cb_banco = b.ba_codigo 
+              INNER JOIN clientes c ON cb.cb_titular = c.cli_codigo 
+              INNER JOIN monedas m ON cb.cb_moneda = m.mo_codigo 
+              LEFT JOIN plan_de_cuenta_set pl ON cb.cb_plan = pl.p_codigo 
+          {where}
+          ORDER BY cb.cb_codigo";
+
+      Console.WriteLine("Query ConsultaCuentasBancariasNew:");
+      Console.WriteLine(query);
+
+      var result = await connection.QueryAsync<CuentaBancariaViewModel>(query, parameters);
+      
+      return result;
+    }
   }
 }

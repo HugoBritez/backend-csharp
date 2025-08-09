@@ -21,6 +21,14 @@ namespace Api.Repositories.Interfaces
             uint? Moneda
         );
 
+        Task<IEnumerable<CuentaBancariaViewModel>> ConsultaCuentasBancariasNew(
+            int? Estado,
+            uint? Moneda,
+            int? conciliado,
+            int? checkTransferencia,
+            uint? codigoCuenta
+        );
+
         Task<IEnumerable<ChequeViewModel>> GetChequesPendientes(
             string fechaInicio,
             string fechaFin,

@@ -7,7 +7,7 @@ namespace Api.Models.Dtos.Banco
         public string? FechaFin { get; set; }
         public int? Situacion { get; set; }
         public int? CheckSaldo { get; set; }
-        public int? ChequeTransferencia { get; set; }
         public int? GuardarCobroTarjeta { get; set; }
+        public int? ChequeTransferencia { get; set; }
     }
 }

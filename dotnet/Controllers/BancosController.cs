@@ -17,16 +17,20 @@ namespace Api.Controllers
 
         [HttpGet("cuentas")]
         public async Task<ActionResult<IEnumerable<CuentaBancariaViewModel>>> GetCuentasBancarias(
-            [FromQuery] int? estado,
-            [FromQuery] uint? moneda,
-            [FromQuery] string? fechaInicio,
-            [FromQuery] string? fechaFin,
-            [FromQuery] int? situacion,
-            [FromQuery] int? checkSaldo,
-            [FromQuery] int? chequeTransferencia
+            [FromQuery]string fechaInicio,
+            [FromQuery]string fechaFin,
+            [FromQuery]int? estado,
+            [FromQuery]string? cheque,
+            [FromQuery]int? tipoFecha,
+            [FromQuery]int? chequeTransferencia,
+            [FromQuery]int? checkSaldo,
+            [FromQuery]int? situacion,
+            [FromQuery]string? busqueda,
+            [FromQuery]int? aplicado,
+            [FromQuery]uint? moneda
         )
         {
-            var res = await _bancoService.ConsultarCuentasBancarias(estado, moneda, fechaInicio, fechaFin, situacion, checkSaldo, chequeTransferencia);
+            var res = await _bancoService.GetCuentasBancarias(fechaInicio, fechaFin, estado, cheque, tipoFecha, chequeTransferencia, checkSaldo, situacion, busqueda, aplicado, moneda);
             return Ok(res);
         }
 

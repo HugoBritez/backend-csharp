@@ -1,3 +1,4 @@
+using Api.Models.Dtos;
 using Api.Models.Dtos.Banco;
 using Api.Models.ViewModels;
 using Api.Repositories.Interfaces;
@@ -16,6 +17,7 @@ namespace Api.Services.Implementations
             _bancoRepository = bancoRepository;
             _configuracionRepository = configuracionRepository;
         }
+        
 
         public async Task<IEnumerable<CuentaBancariaViewModel>> ConsultarCuentasBancarias(
             int? estado,
@@ -30,20 +32,15 @@ namespace Api.Services.Implementations
             var cuentas = await _bancoRepository.ConsultarCuentasBancarias(estado, moneda);
             foreach (var cuenta in cuentas)
             {
-                var guardarCobroTarjetaResponse = await _configuracionRepository.GetById(17);
-                var guardarCobroTarjeta = guardarCobroTarjetaResponse?.Valor ?? "0";
-
-                var consultaSaldo = new CalculoSaldoDTO
+                var saldo = await CalcularSaldoTotal(new CalcularSaldoTotalDTO
                 {
                     CodigoCuenta = cuenta.Codigo,
                     FechaInicio = fechaInicio,
                     FechaFin = fechaFin,
                     Situacion = situacion,
                     CheckSaldo = checkSaldo,
-                    ChequeTransferencia = chequeTransferencia,
-                    GuardarCobroTarjeta = int.Parse(guardarCobroTarjeta)
-                };
-                var saldo = await CalcularSaldoTotal(consultaSaldo);
+                    ChequeTransferencia = chequeTransferencia
+                });
                 cuenta.Saldo = saldo;
             }
             return cuentas;
@@ -348,8 +345,11 @@ namespace Api.Services.Implementations
                 situacion, busqueda, aplicado, int.Parse(guardarCobroTarjeta), chequeTransferencia);
         }
 
-        public async Task<decimal> CalcularSaldoTotal(CalculoSaldoDTO dto)
+        public async Task<decimal> CalcularSaldoTotal(CalcularSaldoTotalDTO dto)
         {
+
+            Console.WriteLine($"CALCULAR SALDO TOTAL DE LA CUENTA{dto.CodigoCuenta}");
+
             var guardarCobroTarjetaResponse = await _configuracionRepository.GetById(17);
             var guardarCobroTarjeta = guardarCobroTarjetaResponse?.Valor ?? "0";
 
@@ -358,7 +358,7 @@ namespace Api.Services.Implementations
                 dto.CheckSaldo, int.Parse(guardarCobroTarjeta), dto.ChequeTransferencia);
 
             var haber = await _bancoRepository.CalcularHaberCuentabancaria(
-                dto.CodigoCuenta, dto.FechaInicio, dto.FechaFin, dto.Situacion, 
+              dto.CodigoCuenta, dto.FechaInicio, dto.FechaFin, dto.Situacion, 
                 dto.CheckSaldo, int.Parse(guardarCobroTarjeta), dto.ChequeTransferencia);
 
             var chequesPropios = await _bancoRepository.CalcularChequeCuentabancaria(
@@ -369,10 +369,55 @@ namespace Api.Services.Implementations
                 dto.CodigoCuenta, dto.FechaInicio, dto.FechaFin, dto.Situacion, 
                 dto.CheckSaldo, int.Parse(guardarCobroTarjeta), dto.ChequeTransferencia);
 
+            Console.WriteLine($"Debe: {debe}");
+            Console.WriteLine($"Haber: {haber}");
+            Console.WriteLine($"Cheques Propios: {chequesPropios}");
+            Console.WriteLine($"Cheques Recibidos: {chequesRecibidos}");
+
             // Cálculo exacto como en FoxPro
             var saldoAnterior = debe - haber - chequesPropios - chequesRecibidos;
 
+            Console.WriteLine($"Saldo Anterior: {saldoAnterior}");
+
             return saldoAnterior;
+        }
+
+
+        public async Task<IEnumerable<CuentaBancariaViewModel>> GetCuentasBancarias(
+            string fechaInicio,
+            string fechaFin,
+            int? estado,
+            string? cheque,
+            int? tipoFecha,
+            int? chequeTransferencia,
+            int? checkSaldo,
+            int? situacion,
+            string? busqueda,
+            int? aplicado,
+            uint? moneda
+        )
+        {
+            var cuentas = await _bancoRepository.ConsultarCuentasBancarias(estado, moneda);
+            foreach (var cuenta in cuentas)
+            {
+                var movimientos = await ConsultaMovimientosBancarios(
+                    fechaInicio,
+                    fechaFin,
+                    estado,
+                    cheque,
+                    cuenta.Codigo,
+                    tipoFecha,
+                    chequeTransferencia,
+                    checkSaldo,
+                    situacion,
+                    busqueda,
+                    aplicado
+                );
+
+                var nuevoSaldo = movimientos.SaldoActual;
+                cuenta.Saldo = nuevoSaldo;
+            }
+            return cuentas;
         }
     }
 }
