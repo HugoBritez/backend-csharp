@@ -252,7 +252,7 @@ if (environment.Equals("Production", StringComparison.OrdinalIgnoreCase))
     Console.WriteLine("Configurando Kestrel para HTTPS en producción...");
     builder.WebHost.ConfigureKestrel(options =>
     {
-        options.ListenAnyIP(5024, listenOptions =>
+        options.ListenAnyIP(5020, listenOptions =>
         {
             var certPath = Environment.GetEnvironmentVariable("CERT_PATH") ?? "/app/certs/aspnetcert.pfx";
             var certPassword = Environment.GetEnvironmentVariable("CERT_PASSWORD") ?? "17052006";

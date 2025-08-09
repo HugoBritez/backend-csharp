@@ -2,30 +2,30 @@ version: "3.9"
 
 services:
   express-api:
-    container_name: express
+    container_name: distriwembe-express
     build:
       context: ./express
     ports:
-      - "${PORT:-4000}:4000"
+      - "${PORT:-4020}:4020"
     env_file: ./.env
     environment:
       - NODE_ENV=production
     volumes:
-      - /opt/docker/caofa:/opt/docker/caofa
+      - /home/distriwembe-backend:/home/distriwembe-backend
     restart: unless-stopped
     networks:
       - app-network
 
   dotnet-api:
-    container_name: dotnet
+    container_name: distriwembe-dotnet
     build:
       context: ./dotnet
     ports:
-      - "${DOTNET_PORT:-4001}:4001"
+      - "${DOTNET_PORT:-5020}:5020"
     env_file: ./.env
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=https://+:4001
+      - ASPNETCORE_URLS=https://+:5020
       - CERT_PATH=/app/certs/aspnetcert.pfx
       - CERT_PASSWORD=17052006
     volumes:

@@ -119,7 +119,8 @@ app.use(
         "https://medical.sofmar.com.py",
         "https://sofmareas.sofmar.com.py",
         "https://*.sofmar.com.py",
-        "https://tecon.sofmar.com.py"
+        "https://tecon.sofmar.com.py",
+        "https://distriwembe.sofmar.com.py"
       ];
       
       // En desarrollo, permitir también conexiones HTTP locales
@@ -156,7 +157,8 @@ let corsOptions = {
     "https://medical.sofmar.com.py",
     "https://sofmareas.sofmar.com.py",
     "https://*.sofmar.com.py",
-    "https://tecon.sofmar.com.py"
+    "https://tecon.sofmar.com.py",
+    "https://distriwembe.sofmar.com.py"
   ],
   optionsSuccessStatus: 200,
 };
@@ -168,6 +170,7 @@ if (env === 'development') {
   corsOptions.origin.push("http://localhost:8080");
   corsOptions.origin.push("http://127.0.0.1:8080");
   corsOptions.origin.push("https://tecon.sofmar.com.py");
+  corsOptions.origin.push("https://distriwembe.sofmar.com.py");
 }
 app.use(cors(corsOptions));
 
