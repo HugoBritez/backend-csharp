@@ -100,7 +100,7 @@ module.exports = function (dbInyectada) {
       if (fecha_hasta) where += ` AND ve.ve_fecha <= '${fecha_hasta}'`;
       if (sucursal) where += ` AND ve.ve_sucursal = '${sucursal}'`;
       if (cliente) where += ` AND ve.ve_cliente = ${cliente}`;
-      if (vendedor) where += ` AND ve.ve_operador = ${vendedor}`;
+      if (vendedor) where += ` AND ve.ve_vendedor = ${vendedor}`;
       if (articulo)
         where += ` AND ve.ve_codigo IN (SELECT z.deve_venta FROM detalle_ventas z WHERE deve_articulo = ${articulo})`;
       if (moneda) where += ` AND ve.ve_moneda = ${moneda}`;
