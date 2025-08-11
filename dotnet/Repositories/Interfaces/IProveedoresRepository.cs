@@ -16,5 +16,7 @@ namespace Api.Repositories.Interfaces{
 
         Task<IEnumerable<ReporteProveedores>> GetReporteProveedores(string? fechaDesde, string? fechaHasta, uint? proveedor, uint? cliente);
 
+        Task<decimal> ObtenerTotalStockPorProveedor(uint proveedor);
+
     }
 }

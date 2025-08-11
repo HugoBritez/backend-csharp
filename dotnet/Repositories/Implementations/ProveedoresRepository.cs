@@ -114,6 +114,7 @@ namespace Api.Repositories.Implementations
                              INNER JOIN compras c ON dc.dc_compra = c.co_codigo
                              WHERE dc.dc_articulo = ar.ar_codigo
                              AND c.co_proveedor = @Proveedor
+                             AND c.co_estado = 1
                              AND c.co_fecha <= @FechaHasta
                              ORDER BY c.co_fecha DESC
                              LIMIT 1), 
@@ -130,6 +131,7 @@ namespace Api.Repositories.Implementations
                                              WHERE dc.dc_articulo = ar.ar_codigo
                                              AND c.co_proveedor = @Proveedor
                                              AND c.co_fecha <= @FechaHasta
+                                             AND c.co_estado = 1
                                              ORDER BY c.co_fecha DESC
                                              LIMIT 1), 
                                             ar.ar_pcg
@@ -151,8 +153,50 @@ namespace Api.Repositories.Implementations
                     INNER JOIN (
                         SELECT
                             dv.deve_articulo,
-                            SUM(dv.deve_cantidad) as TotalItems,
-                            SUM(dv.deve_exentas + dv.deve_cinco + dv.deve_diez) as TotalImporte,
+                            SUM(dv.deve_cantidad)
+                            - COALESCE((
+                                SELECT SUM(denc.denc_cantidad)
+                                FROM detalle_nc denc
+                                INNER JOIN notadecredito nc ON denc.denc_nc = nc.nc_codigo
+                                INNER JOIN ventas v_nc ON nc.nc_venta = v_nc.ve_codigo
+                                WHERE denc.denc_articulo = dv.deve_articulo
+                                AND v_nc.ve_codigo = dv.deve_venta
+                                AND nc.nc_estado = 1
+                            ), 0)
+                            - COALESCE((
+                                SELECT SUM(dnd.dnd_cantidad)
+                                FROM detalle_nd_contado dnd
+                                INNER JOIN notadevolucioncontado nd ON dnd.dnd_devolucion = nd.nd_codigo
+                                INNER JOIN ventas v_nd ON nd.nd_venta = v_nd.ve_codigo
+                                WHERE dnd.dnd_articulo = dv.deve_articulo
+                                AND v_nd.ve_codigo = dv.deve_venta
+                                AND nd.nd_estado = 1
+                            ), 0)
+                            as TotalItems,
+                            SUM(
+                            dv.deve_exentas + 
+                            dv.deve_cinco + 
+                            dv.deve_diez
+                            )
+                            - COALESCE((
+                                SELECT SUM(denc.denc_exentas + denc.denc_cinco + denc.denc_diez)
+                                FROM detalle_nc denc
+                                INNER JOIN notadecredito nc ON denc.denc_nc = nc.nc_codigo
+                                INNER JOIN ventas v_nc ON nc.nc_venta = v_nc.ve_codigo
+                                WHERE denc.denc_articulo = dv.deve_articulo
+                                AND v_nc.ve_codigo = dv.deve_venta
+                                AND nc.nc_estado = 1
+                              ), 0)
+                              - COALESCE((
+                                SELECT SUM(dnd.dnd_exentas + dnd.dnd_cinco + dnd.dnd_diez)
+                                FROM detalle_nd_contado dnd
+                                INNER JOIN notadevolucioncontado nd ON dnd.dnd_devolucion = nd.nd_codigo
+                                INNER JOIN ventas v_nd ON nd.nd_venta = v_nd.ve_codigo
+                                WHERE dnd.dnd_articulo = dv.deve_articulo
+                                AND v_nd.ve_codigo = dv.deve_venta
+                                AND nd.nd_estado = 1
+                              ), 0)
+                             as TotalImporte,
                             SUM(
                                 CASE
                                     WHEN v.ve_saldo = 0 THEN (dv.deve_exentas + dv.deve_cinco + dv.deve_diez)
@@ -167,13 +211,14 @@ namespace Api.Repositories.Implementations
                         GROUP BY dv.deve_articulo
                     ) ventas ON ar.ar_codigo = ventas.deve_articulo
                     LEFT JOIN (
-                        SELECT 
+                        SELECT
                             dc.dc_articulo,
                             SUM(dc.dc_cantidad) as TotalCompras,
-                            SUM(dc.dc_cantidad * dc.dc_precio) as TotalImporteCompras
+                            SUM(dc.dc_cantidad * (dc.dc_precio - dc.dc_descuento)) as TotalImporteCompras
                         FROM detalle_compras dc
                         INNER JOIN compras co ON dc.dc_compra = co.co_codigo
                         WHERE co.co_proveedor = @Proveedor
+                        AND co.co_estado = 1
                         AND co.co_fecha BETWEEN @FechaDesde AND @FechaHasta
                         GROUP BY dc.dc_articulo
                     ) compras ON ar.ar_codigo = compras.dc_articulo
@@ -190,6 +235,24 @@ namespace Api.Repositories.Implementations
                 Console.WriteLine($"Error de conexión: {ex.Message}");
                 throw;
             }
+        }
+
+        public async Task<decimal> ObtenerTotalStockPorProveedor(uint proveedor)
+        {
+            using var connection = await GetConnectionAsync();
+            var parameters = new DynamicParameters();
+            parameters.Add("Proveedor", proveedor);
+
+            var query = @"
+                SELECT
+                  SUM(al.al_cantidad) as TotalStock
+                FROM articulos_lotes al
+                INNER JOIN articulos_proveedores ap ON al.al_articulo = ap.arprove_articulo
+                WHERE ap.arprove_prove = @Proveedor
+            ";
+
+            var result = await connection.ExecuteScalarAsync<decimal>(query, parameters);
+            return result;
         }
     }
 }

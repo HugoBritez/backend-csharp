@@ -403,13 +403,29 @@ namespace Api.Services.Implementations
                     Saldo = Saldo + TotalNotasDebito;
                 }
                 Saldo = Math.Max(0, Saldo);
+                var TotalStock = await _proveedoresRepository.ObtenerTotalStockPorProveedor(proveedor.Value);
+                var TotalValorizacion = datos.Sum(d => d.Valorizacion);
+                var TotalUnidadesCompradas = datos.Sum(d => d.TotalCompras);
+                var TotalImporteDeCompras = datos.Sum(d => d.PrecioCosto);
+                var TotalUnidadesVendidas = datos.Sum(d => d.TotalItems);
+                var TotalImporteDeVentas = datos.Sum(d => d.TotalImporte);
+                var TotalCobrado = datos.Sum(d => d.MontoCobrado);
+                var UtilidadPromedio = datos.Sum(d => d.Utilidad)/datos.Count();
 
                 var reporte = new ReporteVentaPorProveedorViewModel
                 {
                     ReporteVentasPorProveedor = datos,
                     TotalCompras = TotalCompras,
                     TotalPagado = TotalPagado,
-                    Saldo = Saldo
+                    Saldo = Saldo,
+                    TotalStock = TotalStock,
+                    TotalValorizacion = TotalValorizacion,
+                    TotalUnidadesCompradas = TotalUnidadesCompradas,
+                    TotalImporteDeCompras = TotalImporteDeCompras,
+                    TotalUnidadesVendidas = TotalUnidadesVendidas,
+                    TotalImporteDeVentas = TotalImporteDeVentas,
+                    TotalCobrado = TotalCobrado,
+                    UtilidadPromedio = UtilidadPromedio
                 };
                 return reporte;
             }
@@ -418,7 +434,15 @@ namespace Api.Services.Implementations
                 ReporteVentasPorProveedor = datos,
                 TotalCompras = 0,
                 TotalPagado = 0,
-                Saldo = 0
+                Saldo = 0,
+                TotalStock = 0,
+                TotalValorizacion = 0,
+                TotalUnidadesCompradas = 0,
+                TotalImporteDeCompras = 0,
+                TotalUnidadesVendidas = 0,
+                TotalImporteDeVentas = 0,
+                TotalCobrado = 0,
+                UtilidadPromedio = 0
             };
         }
 

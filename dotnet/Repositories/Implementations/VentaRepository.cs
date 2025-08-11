@@ -663,7 +663,9 @@ namespace Api.Repositories.Implementations
                               WHERE ve.ve_estado = 1
                               AND ve.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
                               " + (cliente.HasValue ? "AND ve.ve_cliente = @Cliente" : "") + @"
-                              ORDER BY ve.ve_codigo DESC;
+                              GROUP BY ve.ve_codigo
+                              ORDER BY ve.ve_codigo DESC
+                              ;
                             ";
 
 
