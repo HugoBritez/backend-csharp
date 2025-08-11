@@ -107,6 +107,7 @@ namespace Api.Repositories.Implementations
                         COALESCE(ventas.TotalImporte, 0) as TotalImporte,
                         COALESCE(ventas.MontoCobrado, 0) as MontoCobrado,
                         COALESCE(compras.TotalCompras, 0) as TotalCompras,
+                        COALESCE(compras.TotalImporteCompras, 0) as PrecioCosto,
                         COALESCE(
                             (SELECT dc.dc_precio 
                              FROM detalle_compras dc
@@ -117,7 +118,7 @@ namespace Api.Repositories.Implementations
                              ORDER BY c.co_fecha DESC
                              LIMIT 1), 
                             ar.ar_pcg
-                        ) as PrecioCosto,
+                        ) as PrecioCosto1,
                         CASE 
                             WHEN COALESCE(ventas.TotalImporte, 0) > 0 THEN
                                 ROUND(
@@ -168,7 +169,8 @@ namespace Api.Repositories.Implementations
                     LEFT JOIN (
                         SELECT 
                             dc.dc_articulo,
-                            SUM(dc.dc_cantidad) as TotalCompras
+                            SUM(dc.dc_cantidad) as TotalCompras,
+                            SUM(dc.dc_cantidad * dc.dc_precio) as TotalImporteCompras
                         FROM detalle_compras dc
                         INNER JOIN compras co ON dc.dc_compra = co.co_codigo
                         WHERE co.co_proveedor = @Proveedor
@@ -178,7 +180,7 @@ namespace Api.Repositories.Implementations
                     WHERE p.pro_codigo = @Proveedor
                     AND ventas.TotalItems > 0
                     ORDER BY ar.ar_codigo;
-";
+                    ";
 
                 var result = await connection.QueryAsync<ReporteProveedores>(query, parameters);
                 return result;

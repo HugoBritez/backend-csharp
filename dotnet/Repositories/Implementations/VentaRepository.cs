@@ -600,73 +600,72 @@ namespace Api.Repositories.Implementations
                 parameters.Add("Cliente", cliente);
 
                 var query = @"
-            SELECT 
-                ve.ve_codigo as CodigoVenta,
-                cli.cli_razon as Cliente,
-                cli.cli_ruc as ClienteRuc,
-                ve.ve_fecha as Fecha,
-                IFNULL(IF(ve.ve_factura <> '', ve.ve_factura, vl.ve_factura),'') as Factura,
-                v.op_nombre as Vendedor,
-                o.op_nombre as Operador,
-                COALESCE(ventas.TotalImporte, 0) as Total,
-                ve.ve_descuento as Descuento,
-                COALESCE(ventas.TotalImporte, 0) - COALESCE(ventas.MontoCobrado, 0) as Saldo,
-                IF(ve.ve_credito = 1, 'Crédito', 'Contado') as Condicion,
-                IF(ve.ve_estado = 1, 'Activo', 'Anulado') as Estado,
-                COALESCE(ventas.TotalItems, 0) as TotalItems,
-                COALESCE(ventas.TotalImporte, 0) as TotalImporte,
-                COALESCE(ventas.MontoCobrado, 0) as MontoCobrado,
-                dep.dep_descripcion as Deposito,
-                mo.mo_descripcion as Moneda,
-                s.descripcion as Sucursal,
-                @Proveedor as CodigoProveedor,
-                (SELECT pro_razon FROM proveedores WHERE pro_codigo = @Proveedor) as Proveedor
-            FROM ventas ve
-            INNER JOIN clientes cli ON ve.ve_cliente = cli.cli_codigo
-            INNER JOIN operadores v ON ve.ve_vendedor = v.op_codigo
-            INNER JOIN operadores o ON ve.ve_operador = o.op_codigo
-            INNER JOIN depositos dep ON ve.ve_deposito = dep.dep_codigo
-            INNER JOIN monedas mo ON ve.ve_moneda = mo.mo_codigo
-            INNER JOIN sucursales s ON ve.ve_sucursal = s.id
-            LEFT JOIN venta_vental vvl ON vvl.v_venta = ve.ve_codigo
-            LEFT JOIN ventasl vl ON vvl.v_vental = vl.ve_codigo
-            INNER JOIN (
-                SELECT  dv.deve_venta
-                FROM detalle_ventas dv
-                INNER JOIN articulos ar ON dv.deve_articulo = ar.ar_codigo
-                INNER JOIN articulos_proveedores ap ON ar.ar_codigo = ap.arprove_articulo
-                INNER JOIN proveedores p ON ap.arprove_prove = p.pro_codigo
-                WHERE p.pro_codigo = @Proveedor
-            ) ventas_proveedor ON ve.ve_codigo = ventas_proveedor.deve_venta
-            LEFT JOIN (
-                SELECT
-                    dv2.deve_venta,
-                    SUM(dv2.deve_cantidad) as TotalItems,
-                    SUM(dv2.deve_exentas + dv2.deve_cinco + dv2.deve_diez) as TotalImporte,
-                    SUM(
-                        CASE
-                            WHEN v2.ve_saldo = 0 THEN (dv2.deve_exentas + dv2.deve_cinco + dv2.deve_diez)
-                            ELSE 0
-                        END
-                    ) as MontoCobrado
-                FROM detalle_ventas dv2
-                INNER JOIN articulos ar2 ON dv2.deve_articulo = ar2.ar_codigo
-                INNER JOIN articulos_proveedores ap2 ON ar2.ar_codigo = ap2.arprove_articulo
-                INNER JOIN proveedores p2 ON ap2.arprove_prove = p2.pro_codigo
-                INNER JOIN ventas v2 ON dv2.deve_venta = v2.ve_codigo
-                WHERE v2.ve_estado = 1
-                AND v2.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
-                AND p2.pro_codigo = @Proveedor
-                " + (cliente.HasValue ? "AND v2.ve_cliente = @Cliente" : "") + @"
-                GROUP BY dv2.deve_venta
-            ) ventas ON ve.ve_codigo = ventas.deve_venta
-            WHERE ve.ve_estado = 1
-            AND ve.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
-            " + (cliente.HasValue ? "AND ve.ve_cliente = @Cliente" : "") + @"
-            ORDER BY ve.ve_codigo DESC;
-        ";
+                              SELECT 
+                                  ve.ve_codigo as CodigoVenta,
+                                  cli.cli_razon as Cliente,
+                                  cli.cli_ruc as ClienteRuc,
+                                  ve.ve_fecha as Fecha,
+                                  IFNULL(IF(ve.ve_factura <> '', ve.ve_factura, vl.ve_factura),'') as Factura,
+                                  v.op_nombre as Vendedor,
+                                  o.op_nombre as Operador,
+                                  COALESCE(ventas.TotalImporte, 0) as Total,
+                                  ve.ve_descuento as Descuento,
+                                  COALESCE(ventas.TotalImporte, 0) - COALESCE(ventas.MontoCobrado, 0) as Saldo,
+                                  IF(ve.ve_credito = 1, 'Crédito', 'Contado') as Condicion,
+                                  IF(ve.ve_estado = 1, 'Activo', 'Anulado') as Estado,
+                                  COALESCE(ventas.TotalItems, 0) as TotalItems,
+                                  COALESCE(ventas.TotalImporte, 0) as TotalImporte,
+                                  COALESCE(ventas.MontoCobrado, 0) as MontoCobrado,
+                                  dep.dep_descripcion as Deposito,
+                                  mo.mo_descripcion as Moneda,
+                                  s.descripcion as Sucursal,
+                                  @Proveedor as CodigoProveedor,
+                                  (SELECT pro_razon FROM proveedores WHERE pro_codigo = @Proveedor) as Proveedor
+                              FROM ventas ve
+                              INNER JOIN clientes cli ON ve.ve_cliente = cli.cli_codigo
+                              INNER JOIN operadores v ON ve.ve_vendedor = v.op_codigo
+                              INNER JOIN operadores o ON ve.ve_operador = o.op_codigo
+                              INNER JOIN depositos dep ON ve.ve_deposito = dep.dep_codigo
+                              INNER JOIN monedas mo ON ve.ve_moneda = mo.mo_codigo
+                              INNER JOIN sucursales s ON ve.ve_sucursal = s.id
+                              LEFT JOIN venta_vental vvl ON vvl.v_venta = ve.ve_codigo
+                              LEFT JOIN ventasl vl ON vvl.v_vental = vl.ve_codigo
+                              INNER JOIN (
+                                  SELECT  dv.deve_venta
+                                  FROM detalle_ventas dv
+                                  INNER JOIN articulos ar ON dv.deve_articulo = ar.ar_codigo
+                                  INNER JOIN articulos_proveedores ap ON ar.ar_codigo = ap.arprove_articulo
+                                  INNER JOIN proveedores p ON ap.arprove_prove = p.pro_codigo
+                                  WHERE p.pro_codigo = @Proveedor
+                              ) ventas_proveedor ON ve.ve_codigo = ventas_proveedor.deve_venta
+                              LEFT JOIN (
+                                  SELECT
+                                      dv2.deve_venta,
+                                      SUM(dv2.deve_cantidad) as TotalItems,
+                                      SUM(dv2.deve_exentas + dv2.deve_cinco + dv2.deve_diez) as TotalImporte,
+                                      SUM(
+                                          CASE
+                                              WHEN v2.ve_saldo = 0 THEN (dv2.deve_exentas + dv2.deve_cinco + dv2.deve_diez)
+                                              ELSE 0
+                                          END
+                                      ) as MontoCobrado
+                                  FROM detalle_ventas dv2
+                                  INNER JOIN articulos ar2 ON dv2.deve_articulo = ar2.ar_codigo
+                                  INNER JOIN articulos_proveedores ap2 ON ar2.ar_codigo = ap2.arprove_articulo
+                                  INNER JOIN proveedores p2 ON ap2.arprove_prove = p2.pro_codigo
+                                  INNER JOIN ventas v2 ON dv2.deve_venta = v2.ve_codigo
+                                  WHERE v2.ve_estado = 1
+                                  AND v2.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
+                                  AND p2.pro_codigo = @Proveedor
+                                  " + (cliente.HasValue ? "AND v2.ve_cliente = @Cliente" : "") + @"
+                                  GROUP BY dv2.deve_venta
+                              ) ventas ON ve.ve_codigo = ventas.deve_venta
+                              WHERE ve.ve_estado = 1
+                              AND ve.ve_fecha BETWEEN @FechaDesde AND @FechaHasta
+                              " + (cliente.HasValue ? "AND ve.ve_cliente = @Cliente" : "") + @"
+                              ORDER BY ve.ve_codigo DESC;
+                            ";
 
-                Console.WriteLine(query);
 
                 var result = await connection.QueryAsync<ReporteVentasPorProveedor>(query, parameters);
                 return result;
@@ -676,6 +675,156 @@ namespace Api.Repositories.Implementations
                 Console.WriteLine($"Error de conexión: {ex.Message}");
                 throw;
             }
+        }
+
+        public async Task<decimal> ObtenerTotalComprasProveedor(string fechaDesde, string fechaHasta, uint? proveedor, uint? cliente)
+        {
+            using var connection = GetConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("FechaDesde", fechaDesde);
+            parameters.Add("FechaHasta", fechaHasta);
+            parameters.Add("Proveedor", proveedor);
+            parameters.Add("Cliente", cliente);
+
+            var whereClause = string.Empty;
+            if(proveedor.HasValue)
+            {
+                whereClause = $"AND co_proveedor = {proveedor}";
+            }
+            if(cliente.HasValue)
+            {
+                whereClause = $"AND co_cliente = {cliente}";
+            }
+
+            Console.WriteLine("######### ObtenerTotalComprasProveedor #########");
+            Console.WriteLine(fechaDesde);
+            Console.WriteLine(fechaHasta);
+            Console.WriteLine(proveedor);
+            Console.WriteLine(cliente);
+
+            Console.WriteLine(whereClause);
+
+            var query = @$"
+               SELECT
+                 SUM(co_total)
+               FROM compras
+               WHERE co_estado = 1
+               {whereClause}
+            ";
+
+            Console.WriteLine(query);
+            return await connection.ExecuteScalarAsync<decimal>(query, parameters);
+        }
+
+        public async Task<decimal> ObtenerTotalPagadoProveedor(string? fechaDesde, string? fechaHasta, uint? proveedor, uint? cliente)
+        {
+            using var connection = GetConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("FechaDesde", fechaDesde);
+            parameters.Add("FechaHasta", fechaHasta);
+            parameters.Add("Proveedor", proveedor);
+            parameters.Add("Cliente", cliente);
+
+            var whereClause = string.Empty;
+
+            if(proveedor.HasValue)
+            {
+                whereClause = $"AND co_proveedor = {proveedor}";
+            }
+            if(cliente.HasValue)
+            {
+                whereClause = $"AND co_cliente = {cliente}";
+            }
+
+            Console.WriteLine("######### ObtenerTotalPagadoProveedor #########");
+            Console.WriteLine(fechaDesde);
+            Console.WriteLine(fechaHasta);
+            Console.WriteLine(proveedor);
+            Console.WriteLine(cliente);
+            Console.WriteLine(whereClause);
+
+            var query = @$"
+                SELECT
+                  sum(co_total - co_saldo) as TotalPagado
+                FROM compras
+                WHERE co_estado = 1
+                AND co_saldo != co_total
+                {whereClause}
+            ";
+
+            Console.WriteLine(query);
+            return await connection.ExecuteScalarAsync<decimal>(query, parameters);
+        }
+
+        public async Task<decimal> ObtenerTotalNotasDebitoProveedor( uint? proveedor)
+        {
+            using var connection = GetConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("Proveedor", proveedor);
+
+            var query = @$"
+                SELECT
+                  sum(nd_saldo) as TotalNotasDebito
+                FROM notadedebito
+                WHERE nd_proveedor = @Proveedor
+                AND nd_estado = 1
+            ";
+
+            Console.WriteLine(query);
+            return await connection.ExecuteScalarAsync<decimal>(query, parameters);
+        }
+
+        public async Task<(decimal TotalCompras, decimal TotalPagado, decimal Saldo)> ObtenerSaldoProveedor(uint proveedor)
+        {
+            using var connection = GetConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("Proveedor", proveedor);
+            
+            // Obtener total de compras del proveedor
+            var queryCompras = @"
+                SELECT 
+                    SUM(c.co_total) as TotalCompras,
+                    SUM(c.co_saldo) as TotalSaldo
+                FROM compras c 
+                WHERE c.co_estado = 1 
+                AND c.co_proveedor = @Proveedor";
+            
+            var totalCompras = await connection.ExecuteScalarAsync<decimal>(queryCompras, parameters);
+            
+            // Obtener total de pagos de caja chica
+            var queryPagosCajaChica = @"
+                SELECT COALESCE(SUM(dm.monto), 0) as Total
+                FROM compras v 
+                INNER JOIN detalle_caja_ch_pago dv ON dv.dcpa_compra = v.co_codigo 
+                INNER JOIN detalle_caja_chica dc ON dv.dcpa_detalleCaja = dc.d_codigo 
+                INNER JOIN detalle_caja_ch_metodo dm ON dm.dccm_deca = dc.d_codigo 
+                INNER JOIN operacion_caja_chica oc ON dc.d_caja_chica = oc.o_codigo
+                WHERE dc.d_estado = 1 
+                AND v.co_proveedor = @Proveedor";
+            
+            var pagosCajaChica = await connection.ExecuteScalarAsync<decimal>(queryPagosCajaChica, parameters);
+            
+            // Obtener total de pagos de caja principal
+            var queryPagosCajaPrincipal = @"
+                SELECT COALESCE(SUM(d.deca_monto), 0) as Total
+                FROM compras c 
+                INNER JOIN detalle_caja_pago dc ON dc.depa_compra = c.co_codigo 
+                INNER JOIN detalle_caja d ON dc.depa_detalleCaja = d.deca_codigo 
+                INNER JOIN operacion_caja o ON d.deca_operacion = o.oc_codigo
+                WHERE d.deca_estado = 1 
+                AND c.co_proveedor = @Proveedor";
+            
+            var pagosCajaPrincipal = await connection.ExecuteScalarAsync<decimal>(queryPagosCajaPrincipal, parameters);
+            
+            var totalPagado = pagosCajaChica + pagosCajaPrincipal;
+            
+            // Obtener total de notas de débito
+            var totalNotasDebito = await ObtenerTotalNotasDebitoProveedor(proveedor);
+            
+            // Calcular saldo siguiendo la lógica del VFP
+            var saldo = Math.Max(0, totalCompras - totalPagado - totalNotasDebito);
+            
+            return (totalCompras, totalPagado, saldo);
         }
 
         // Métodos auxiliares privados

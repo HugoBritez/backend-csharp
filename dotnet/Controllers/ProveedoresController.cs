@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Api.Repositories.Interfaces;
 using Api.Models.ViewModels;
+using Api.Services.Interfaces;
 
 
 namespace Api.Controllers
@@ -11,10 +12,12 @@ namespace Api.Controllers
     public class ProveedoresController : ControllerBase
     {
         private readonly IProveedoresRepository _proveedoresRepository;
+        private readonly IVentaService _ventaService;
 
-        public ProveedoresController(IProveedoresRepository proveedoresRepository)
+        public ProveedoresController(IProveedoresRepository proveedoresRepository, IVentaService ventaService)
         {
             _proveedoresRepository = proveedoresRepository;
+            _ventaService = ventaService;
         }
 
         [HttpGet]
@@ -27,14 +30,14 @@ namespace Api.Controllers
         }
 
         [HttpGet("reporte")]
-        public async Task<ActionResult<IEnumerable<ReporteProveedores>>> GetReporteProveedores(
-            [FromQuery] string? fechaDesde,
-            [FromQuery] string? fechaHasta,
+        public async Task<ActionResult<ReporteVentaPorProveedorViewModel>> GetReporteProveedores(
+            [FromQuery] string fechaDesde,
+            [FromQuery] string fechaHasta,
             [FromQuery] uint? proveedor,
             [FromQuery] uint? cliente
         )
         {
-            var reporte = await _proveedoresRepository.GetReporteProveedores(fechaDesde, fechaHasta, proveedor, cliente);
+            var reporte = await _ventaService.GetReporteVentasPorProveedor(fechaDesde, fechaHasta, proveedor, cliente);
             return Ok(reporte);
         }
     }

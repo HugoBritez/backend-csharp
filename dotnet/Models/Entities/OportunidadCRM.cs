@@ -30,6 +30,6 @@ namespace Api.Models.Entities
         [Column("op_autorizado_por")]
         public uint? AutorizadoPor { get; set; }
         [Column("op_archivado")]
-        public int? Archivado { get; set; }
+        public int? Archivado { get; set; } = 0;
     }
 }

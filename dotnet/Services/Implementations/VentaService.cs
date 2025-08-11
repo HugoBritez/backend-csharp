@@ -21,6 +21,7 @@ namespace Api.Services.Implementations
         private readonly ICotizacionRepository _cotizacionRepository;
         private readonly IMetasService _metasService;
         private readonly IClienteRepository _clienteRepository;
+        private readonly IProveedoresRepository _proveedoresRepository;
         public VentaService(IVentaRepository ventaRepository,
             IDetalleVentaRepository detalleVentaRepository,
             IDetalleBonificacionRepository detalleBonificacionRepository,
@@ -31,7 +32,8 @@ namespace Api.Services.Implementations
             IAuditoriaService auditoriaService,
             ICotizacionRepository cotizacionRepository,
             IMetasService metasService,
-            IClienteRepository clienteRepository
+            IClienteRepository clienteRepository,
+            IProveedoresRepository proveedoresRepository
         )
         {
             _ventaRepository = ventaRepository;
@@ -45,6 +47,7 @@ namespace Api.Services.Implementations
             _cotizacionRepository = cotizacionRepository;
             _metasService = metasService;
             _clienteRepository = clienteRepository;
+            _proveedoresRepository = proveedoresRepository;
         }
         public async Task<Venta> CrearVenta(VentaDTO venta, IEnumerable<DetalleVentaDTO> detalleVentaDTOs)
         {
@@ -382,6 +385,41 @@ namespace Api.Services.Implementations
                 null, // page
                 3); // itemsPorPagina
             return ventas;
+        }
+
+
+        public async Task<ReporteVentaPorProveedorViewModel> GetReporteVentasPorProveedor(string fechaDesde, string fechaHasta, uint? proveedor, uint? cliente)
+        {
+            var datos = await _proveedoresRepository.GetReporteProveedores(fechaDesde, fechaHasta, proveedor, cliente);
+            
+            if (proveedor.HasValue)
+            {
+                var TotalCompras = await _ventaRepository.ObtenerTotalComprasProveedor(fechaDesde, fechaHasta, proveedor, cliente);
+                var TotalPagado = await _ventaRepository.ObtenerTotalPagadoProveedor(fechaDesde, fechaHasta, proveedor, cliente);
+                var TotalNotasDebito = await _ventaRepository.ObtenerTotalNotasDebitoProveedor(proveedor);
+                var Saldo = TotalCompras - TotalPagado;
+                if (Saldo > 0)
+                {
+                    Saldo = Saldo + TotalNotasDebito;
+                }
+                Saldo = Math.Max(0, Saldo);
+
+                var reporte = new ReporteVentaPorProveedorViewModel
+                {
+                    ReporteVentasPorProveedor = datos,
+                    TotalCompras = TotalCompras,
+                    TotalPagado = TotalPagado,
+                    Saldo = Saldo
+                };
+                return reporte;
+            }
+            return new ReporteVentaPorProveedorViewModel
+            {
+                ReporteVentasPorProveedor = datos,
+                TotalCompras = 0,
+                TotalPagado = 0,
+                Saldo = 0
+            };
         }
 
     }

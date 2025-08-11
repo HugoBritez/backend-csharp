@@ -12,5 +12,7 @@ namespace Api.Services.Interfaces
 
         Task<IEnumerable<VentaViewModel>> GetVentasPorCliente(string clienteRuc);
 
+        Task<ReporteVentaPorProveedorViewModel> GetReporteVentasPorProveedor(string fechaDesde, string fechaHasta, uint? proveedor, uint? cliente);
+
     }
 }
