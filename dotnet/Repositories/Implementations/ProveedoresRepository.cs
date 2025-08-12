@@ -136,7 +136,7 @@ namespace Api.Repositories.Implementations
                                              LIMIT 1), 
                                             ar.ar_pcg
                                         ))) / ventas.TotalImporte) * 100, 2
-                                )
+                                    )
                             ELSE 0
                         END as Utilidad,
                         COALESCE(stock.TotalStock, 0) * ar.ar_pvg as Valorizacion
@@ -187,15 +187,15 @@ namespace Api.Repositories.Implementations
                                 AND v_nc.ve_codigo = dv.deve_venta
                                 AND nc.nc_estado = 1
                               ), 0)
-                              - COALESCE((
-                                SELECT SUM(dnd.dnd_exentas + dnd.dnd_cinco + dnd.dnd_diez)
-                                FROM detalle_nd_contado dnd
-                                INNER JOIN notadevolucioncontado nd ON dnd.dnd_devolucion = nd.nd_codigo
-                                INNER JOIN ventas v_nd ON nd.nd_venta = v_nd.ve_codigo
-                                WHERE dnd.dnd_articulo = dv.deve_articulo
-                                AND v_nd.ve_codigo = dv.deve_venta
-                                AND nd.nd_estado = 1
-                              ), 0)
+                            - COALESCE((
+                              SELECT SUM(dnd.dnd_exentas + dnd.dnd_cinco + dnd.dnd_diez)
+                              FROM detalle_nd_contado dnd
+                              INNER JOIN notadevolucioncontado nd ON dnd.dnd_devolucion = nd.nd_codigo
+                              INNER JOIN ventas v_nd ON nd.nd_venta = v_nd.ve_codigo
+                              WHERE dnd.dnd_articulo = dv.deve_articulo
+                              AND v_nd.ve_codigo = dv.deve_venta
+                              AND nd.nd_estado = 1
+                            ), 0)
                              as TotalImporte,
                             SUM(
                                 CASE
