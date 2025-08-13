@@ -17,6 +17,10 @@ namespace Api.Services.Implementations
         private readonly IZonaRepository _zonasRepository;
         private readonly IDepartamentoRepository _departamentosRepository;
         private readonly ICiudadesRepository _ciudadesRepository;
+        private readonly IOportunidadesPestanasCRMRepository _oportunidadesPestanasCRMRepository;
+        private readonly ITareaDinamicaRepository _tareaDinamicaRepository;
+        private readonly IPestanaCRMRepository _pestanaCRMRepository;
+
         private readonly IProyectosColaboradoresRepositoryCRM _proyectosColaboradoresRepository;
         public CRMService(
             IContactosCRMRepository contactosCRMRepository, 
@@ -26,7 +30,10 @@ namespace Api.Services.Implementations
             IZonaRepository zonasRepository,
             IDepartamentoRepository departamentosRepository,
             ICiudadesRepository ciudadesRepository,
-            IProyectosColaboradoresRepositoryCRM proyectosColaboradoresRepository)
+            IProyectosColaboradoresRepositoryCRM proyectosColaboradoresRepository,
+            IOportunidadesPestanasCRMRepository oportunidadesPestanasCRMRepository,
+            ITareaDinamicaRepository tareaDinamicaRepository,
+            IPestanaCRMRepository pestanaCRMRepository)
         {
             _contactosCRMRepository = contactosCRMRepository;
             _oportunidadesCRMRepository = oportunidadesCRMRepository;
@@ -36,6 +43,9 @@ namespace Api.Services.Implementations
             _departamentosRepository = departamentosRepository;
             _ciudadesRepository = ciudadesRepository;
             _proyectosColaboradoresRepository = proyectosColaboradoresRepository;
+            _oportunidadesPestanasCRMRepository = oportunidadesPestanasCRMRepository;
+            _tareaDinamicaRepository = tareaDinamicaRepository;
+            _pestanaCRMRepository = pestanaCRMRepository;
         }
 
         #region Contactos
@@ -470,6 +480,69 @@ namespace Api.Services.Implementations
                 throw;
             }
         }
+        #endregion
+
+        #region Pestanas
+        public async Task<IEnumerable<OportunidadViewModel>> GetOportunidadesByPestana(DateTime fechaInicio, DateTime fechaFin, uint pestana)
+        {
+            try {
+                _logger.LogDebug("Obteniendo oportunidades por pestana: {Pestana}", pestana);
+                var oportunidadesId = await _oportunidadesPestanasCRMRepository.GetOportunidadesByPestana(pestana);
+                var oportunidades = await _oportunidadesCRMRepository.GetOportunidadesCompletas(fechaInicio, fechaFin);
+                return oportunidades.Where(o => oportunidadesId.Contains(o.Codigo));
+            } catch (Exception ex) {
+                _logger.LogError(ex, "Error al obtener oportunidades por pestana: {Pestana}", pestana);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<PestanaCRM>> GetPestanas()
+        {
+            var pestanas = await _pestanaCRMRepository.ListarPestanas();
+            return pestanas;
+        }
+
+        public async Task<PestanaCRM> CrearPestana(PestanaCRM pestana)
+        {
+            var pestanaCreada = await _pestanaCRMRepository.CrearPestana(pestana);
+            return pestanaCreada;
+        }
+
+        public async Task<PestanaCRM> ActualizarPestana(PestanaCRM pestana)
+    {
+            var pestanaActualizada = await _pestanaCRMRepository.UpdatePestana(pestana);
+            return pestanaActualizada;
+        }
+
+
+        public async Task<OportunidadPestanaCRM> CrearOportunidadPestana(OportunidadPestanaCRM oportunidadPestana)
+        {
+            var oportunidadPestanaCreada = await _oportunidadesPestanasCRMRepository.CrearOportunidadPestana(oportunidadPestana);
+            return oportunidadPestanaCreada;
+        }
+        public async Task<bool> EliminarOportunidadPestana(uint oportunidad, uint pestana)
+        {
+            var oportunidadPestanaEliminada = await _oportunidadesPestanasCRMRepository.EliminarOportunidadPestana(oportunidad, pestana);
+            return oportunidadPestanaEliminada;
+        }
+
+        public async Task<IEnumerable<TareaDinamicaCRM>> GetTareasByPestana(uint pestana)
+        {
+            var tareas = await _tareaDinamicaRepository.ListarTareasPorPestana(pestana);
+            return tareas;
+        }
+        public async Task<TareaDinamicaCRM> CrearTareaDinamica(TareaDinamicaCRM tarea)
+        {
+            var tareaCreada = await _tareaDinamicaRepository.CreateTareaDinamica(tarea);
+            return tareaCreada;
+        }
+        public async Task<TareaDinamicaCRM> ActualizarTareaDinamica(TareaDinamicaCRM tarea)
+        {
+            var tareaActualizada = await _tareaDinamicaRepository.UpdateTarea(tarea);
+            return tareaActualizada;
+        }
+
+
         #endregion
     }
 }

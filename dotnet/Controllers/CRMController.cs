@@ -428,5 +428,73 @@ namespace Api.Controllers
                 _ => "application/octet-stream"
             };
         }
+
+        // endpoints para pestanas
+        [HttpGet("pestanas")]
+        public async Task<ActionResult<IEnumerable<PestanaCRM>>> GetPestanas()
+        {
+            var pestanas = await _crmService.GetPestanas();
+            return Ok(pestanas);
+        }
+
+        [HttpPost("pestanas")]
+        public async Task<ActionResult<PestanaCRM>> CreatePestana([FromBody] PestanaCRM pestana)
+        {
+            var pestanaCreada = await _crmService.CrearPestana(pestana);
+            return Ok(pestanaCreada);
+        }
+
+        [HttpPut("pestanas")]
+        public async Task<ActionResult<PestanaCRM>> UpdatePestana([FromBody] PestanaCRM pestana)
+        {
+            var pestanaActualizada = await _crmService.ActualizarPestana(pestana);
+            return Ok(pestanaActualizada);
+        }
+
+        [HttpGet("pestanas/tareas/{pestana}")]
+        public async Task<ActionResult<IEnumerable<TareaDinamicaCRM>>> GetTareasByPestana(uint pestana)
+        {
+            var tareas = await _crmService.GetTareasByPestana(pestana);
+            return Ok(tareas);
+        }
+
+        [HttpPost("pestanas/tareas")]
+        public async Task<ActionResult<TareaDinamicaCRM>> CreateTareaDinamica([FromBody] TareaDinamicaCRM tarea)
+        {
+            var tareaCreada = await _crmService.CrearTareaDinamica(tarea);
+            return Ok(tareaCreada);
+        }
+
+        [HttpPut("pestanas/tareas")]
+        public async Task<ActionResult<TareaDinamicaCRM>> UpdateTareaDinamica([FromBody] TareaDinamicaCRM tarea)
+        {
+            var tareaActualizada = await _crmService.ActualizarTareaDinamica(tarea);
+            return Ok(tareaActualizada);
+        }
+
+        [HttpGet("pestanas/oportunidades/{pestana}")]
+        public async Task<ActionResult<IEnumerable<OportunidadViewModel>>> GetOportunidadesByPestana(
+            [FromQuery] DateTime fechaInicio,
+            [FromQuery] DateTime fechaFin,
+            uint pestana
+        )
+        {
+            var oportunidades = await _crmService.GetOportunidadesByPestana(fechaInicio, fechaFin, pestana);
+            return Ok(oportunidades);
+        }
+
+        [HttpPost("pestanas/oportunidades")]
+        public async Task<ActionResult<OportunidadPestanaCRM>> CreateOportunidadPestana([FromBody] OportunidadPestanaCRM oportunidadPestana)
+        {
+            var oportunidadPestanaCreada = await _crmService.CrearOportunidadPestana(oportunidadPestana);
+            return Ok(oportunidadPestanaCreada);
+        }   
+
+        [HttpDelete("pestanas/oportunidades")]
+        public async Task<ActionResult<bool>> DeleteOportunidadPestana(uint oportunidad, uint pestana)
+        {
+            var oportunidadPestanaEliminada = await _crmService.EliminarOportunidadPestana(oportunidad, pestana);
+            return Ok(oportunidadPestanaEliminada);
+        }   
     }
 }

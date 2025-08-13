@@ -187,7 +187,6 @@ alter table oportunidades_crm add column op_archivado int unsigned not null DEFA
 
 ALTER TABLE recordatorios_crm ADD column re_enviado INT UNSIGNED    NOT NULL DEFAULT 0;
 
-
 -- Tablas para configurar la integracion con la api de Meta --
 
 CREATE TABLE configuraciones_meta_crm (
@@ -200,5 +199,53 @@ CREATE TABLE configuraciones_meta_crm (
 INSERT INTO configuraciones_meta_crm (conf_codigo, conf_access_token, conf_verify_token, conf_estado) VALUES
 (1, null, 'Sofmarsistema170520061968', 1); -- el verify token es siempre constante, el access token si varia por cliente
 
+ -- Tabla para las pestanas que crean los usuarios dinamicamente --
+CREATE TABLE IF NOT EXISTS pestana_crm (
+    pe_codigo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    pe_descripcion VARCHAR(255) NOT NULL DEFAULT 'Nueva Pestaña',
+    pe_estado INT NOT NULL DEFAULT 1,
+    pe_fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    pe_operador INT UNSIGNED NOT NULL,
+    FOREIGN KEY (pe_operador) REFERENCES operadores (op_codigo)
+);
+
+-- tabla para las tareas dinamicas que crean los usuarios en las distintas pestanas tambien dinamicas --
+CREATE TABLE IF NOT EXISTS tareas_dinamicas_crm (
+    td_codigo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    td_titulo VARCHAR(255) NOT NULL DEFAULT 'Nueva Tarea',
+    td_descripcion TEXT NULL,
+    td_fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    td_fecha_limite DATETIME NULL,
+    td_fecha_finalizacion DATETIME NULL,
+    td_estado INT NOT NULL DEFAULT 1,
+    td_completado INT NOT NULL DEFAULT 0,
+    td_creador INT UNSIGNED NOT NULL,
+    td_pestana INT UNSIGNED NOT NULL , 
+    td_operador INT UNSIGNED NULL COMMENT 'si es null, no se relaciona con ningun operador, es general', 
+    td_proyecto INT UNSIGNED NULL COMMENT 'si es null, es una tarea suelta',
+    td_contacto INT UNSIGNED NULL COMMENT 'si es null, no se relaciona con ningun contacto',
+    td_public INT NOT NULL DEFAULT 1,
+    
+    FOREIGN KEY (td_creador) REFERENCES operadores (op_codigo),
+    FOREIGN KEY (td_pestana) REFERENCES pestana_crm (pe_codigo)
+);
+
+-- tabla para relacionar oportunidades que vayan a las distintas pestanas --
+
+CREATE TABLE IF NOT EXISTS oportunidades_pestanas_crm (
+    op_pestana INT UNSIGNED NOT NULL,
+    op_oportunidad INT UNSIGNED NOT NULL,
+    FOREIGN KEY (op_pestana) REFERENCES pestana_crm (pe_codigo),
+    FOREIGN KEY (op_oportunidad) REFERENCES oportunidades_crm (op_codigo)
+);
+
+-- indices para mejorar el rendimiento de las consultas --
+
+CREATE INDEX idx_tareas_pestana ON tareas_dinamicas_crm(td_pestana, td_estado); 
+CREATE INDEX idx_tareas_operador ON tareas_dinamicas_crm(td_operador, td_estado);
+CREATE INDEX idx_oportunidades_pestana ON oportunidades_pestanas_crm(op_pestana);
 
 
+ALTER TABLE oportunidades_crm ADD column op_moneda INT UNSIGNED NOT NULL DEFAULT 1;
+ALTER TABLE oportunidades_crm ADD CONSTRAINT fk_oportunidades_crm_moneda
+FOREIGN KEY (op_moneda) REFERENCES monedas(mo_codigo);

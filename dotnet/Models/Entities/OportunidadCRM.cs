@@ -31,5 +31,7 @@ namespace Api.Models.Entities
         public uint? AutorizadoPor { get; set; }
         [Column("op_archivado")]
         public int? Archivado { get; set; } = 0;
+        [Column("op_moneda")]
+        public uint Moneda { get; set; } = 1;
     }
 }

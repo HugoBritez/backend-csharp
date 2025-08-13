@@ -46,5 +46,23 @@ namespace Api.Services.Interfaces
         Task<IEnumerable<ProyectosColaboradoresCRM>> CreateColaborador(uint proyecto, IEnumerable<uint> colaboradores);
 
         Task<IEnumerable<OportunidadViewModel>> GetOportunidadesArchivadas(DateTime? fechaInicio = null, DateTime? fechaFin = null);
+
+        Task<IEnumerable<PestanaCRM>> GetPestanas();
+
+        Task<PestanaCRM> CrearPestana(PestanaCRM pestana);
+
+        Task<PestanaCRM> ActualizarPestana(PestanaCRM pestana);
+
+        Task<IEnumerable<TareaDinamicaCRM>> GetTareasByPestana(uint pestana);
+
+        Task<TareaDinamicaCRM> CrearTareaDinamica(TareaDinamicaCRM tarea);
+
+        Task<TareaDinamicaCRM> ActualizarTareaDinamica(TareaDinamicaCRM tarea);
+
+        Task<OportunidadPestanaCRM> CrearOportunidadPestana(OportunidadPestanaCRM oportunidadPestana);
+
+        Task<bool> EliminarOportunidadPestana(uint oportunidad, uint pestana);
+
+        Task<IEnumerable<OportunidadViewModel>> GetOportunidadesByPestana(DateTime fechaInicio, DateTime fechaFin, uint pestana);
     }
 }

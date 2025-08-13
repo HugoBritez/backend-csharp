@@ -193,6 +193,9 @@ builder.Services.AddScoped<IProyectosColaboradoresRepositoryCRM, ProyectosColabo
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IBancoRepository, BancoRepository>();
 builder.Services.AddScoped<IBancoService, BancoService>();
+builder.Services.AddScoped<IPestanaCRMRepository, PestanaCRMRepository>();
+builder.Services.AddScoped<ITareaDinamicaRepository, TareaDinamicaCRMRepository>();
+builder.Services.AddScoped<IOportunidadesPestanasCRMRepository, OportunidadPestanaRepository>();
 
 // Configurar EmailService
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));

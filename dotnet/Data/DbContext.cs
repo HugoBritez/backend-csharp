@@ -85,6 +85,10 @@ namespace Api.Data
         public DbSet<Banco> Bancos { get; set; }
         public DbSet<CuentaBancaria> CuentasBancarias { get; set; }
         public DbSet<PlanDeCuentaSET> PlanDeCuentasSET { get; set; }
+        public DbSet<PestanaCRM> PestanasCRM { get; set; }
+        public DbSet<TareaDinamicaCRM> TareasDinamicasCRM { get; set; }
+        public DbSet<OportunidadPestanaCRM> OportunidadesPestanasCRM { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
