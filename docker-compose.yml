@@ -1,21 +1,4 @@
 version: "3.9"
-
-services:
-  express-api:
-    container_name: distriwembe-express
-    build:
-      context: ./express
-    ports:
-      - "${PORT:-4020}:4020"
-    env_file: ./.env
-    environment:
-      - NODE_ENV=production
-    volumes:
-      - /home/distriwembe-backend:/home/distriwembe-backend
-    restart: unless-stopped
-    networks:
-      - app-network
-
   dotnet-api:
     container_name: distriwembe-dotnet
     build:
